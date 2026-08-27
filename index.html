@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOON CLICKER · ГЛОБАЛЬНЫЙ ЛИДЕРБОРД</title>
+    <title>HORIZON CLICKER</title>
     <style>
         * {
             margin: 0;
@@ -34,6 +34,93 @@
         .app::-webkit-scrollbar-track { background: #0f1422; border-radius: 10px; }
         .app::-webkit-scrollbar-thumb { background: #2e3f6a; border-radius: 10px; }
 
+        /* ===== РЕГИСТРАЦИЯ ===== */
+        .register-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 14, 26, 0.96);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+        }
+        .register-overlay.hidden {
+            display: none;
+        }
+        .register-box {
+            background: #141a2b;
+            padding: 2.5rem 2rem;
+            border-radius: 2.5rem;
+            border: 1px solid #2e3f6a;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(79, 126, 255, 0.15);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .register-box h1 {
+            color: #b7c9ff;
+            font-weight: 300;
+            letter-spacing: 4px;
+            font-size: 2rem;
+            text-shadow: 0 0 20px #3f5f9f;
+        }
+        .register-box .sub {
+            color: #7a8fc9;
+            font-size: 0.85rem;
+            margin: 0.3rem 0 1.5rem;
+        }
+        .register-box input {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid #2e3f6a;
+            background: #0f1422;
+            color: #d6e5ff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .register-box input:focus {
+            border-color: #4f7eff;
+            box-shadow: 0 0 20px rgba(79, 126, 255, 0.2);
+        }
+        .register-box input::placeholder {
+            color: #5a6f9a;
+        }
+        .register-box button {
+            margin-top: 1.2rem;
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 60px;
+            border: none;
+            background: radial-gradient(circle at 30% 25%, #4f7eff, #1a2d66);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.1s;
+            text-shadow: 0 2px 0 #0b142f;
+        }
+        .register-box button:active {
+            transform: scale(0.96);
+        }
+        .register-box .error {
+            color: #ff6b7a;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            height: 1.2rem;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -47,8 +134,20 @@
             font-weight: 300;
             letter-spacing: 3px;
             text-transform: uppercase;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             text-shadow: 0 0 8px #3f5f9f;
+        }
+        .header .player-name {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: #0f1422;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #2e3f6a;
+        }
+        .header .player-name span {
+            color: #d6e5ff;
+            font-weight: 600;
         }
         .tab-buttons {
             display: flex;
@@ -251,6 +350,11 @@
             color: #f5c542;
             font-weight: 700;
         }
+        .lb-entry.me {
+            border-color: #4f7eff;
+            background: #1a2d4a;
+            box-shadow: 0 0 15px rgba(79, 126, 255, 0.1);
+        }
         .lb-empty {
             color: #5a6f9a;
             text-align: center;
@@ -281,18 +385,6 @@
             border-color: #6a3148;
             color: #ffb0c8;
         }
-        .name-input {
-            background: #0f1422;
-            border: 1px solid #2e3f6a;
-            border-radius: 30px;
-            padding: 0.3rem 1rem;
-            color: #d6e5ff;
-            font-size: 0.9rem;
-            outline: none;
-            width: 150px;
-        }
-        .name-input::placeholder { color: #5a6f9a; }
-
         .reset-area {
             display: flex;
             justify-content: flex-end;
@@ -325,473 +417,491 @@
             .score-num { font-size: 1.6rem; }
             .header h1 { font-size: 1.1rem; }
             .tab-btn { font-size: 0.7rem; padding: 0.3rem 0.7rem; }
+            .register-box { padding: 1.8rem 1.2rem; }
+            .register-box h1 { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
-<div class="app" id="app">
-    <div class="header">
-        <h1>⚡ SOON</h1>
-        <div class="tab-buttons">
-            <button class="tab-btn active" data-tab="game">🎮 Игра</button>
-            <button class="tab-btn" data-tab="shop">🏪 Магазин</button>
-            <button class="tab-btn" data-tab="leaderboard">🏆 Лидерборд</button>
+    <!-- ===== РЕГИСТРАЦИЯ ===== -->
+    <div class="register-overlay" id="registerOverlay">
+        <div class="register-box">
+            <h1>🌌 HORIZON</h1>
+            <div class="sub">Введите ваш игровой ник</div>
+            <input type="text" id="registerInput" placeholder="Например: Horizon_Pro" maxlength="20" autofocus>
+            <div class="error" id="registerError"></div>
+            <button id="registerBtn">🚀 Войти в игру</button>
         </div>
     </div>
 
-    <div class="tab-content active" id="tab-game">
-        <div class="top-panel">
-            <div class="score-block">
-                <span>🪙</span>
-                <span class="score-num" id="scoreDisplay">0</span>
+    <!-- ===== ИГРА ===== -->
+    <div class="app" id="app">
+        <div class="header">
+            <h1>🌌 HORIZON</h1>
+            <div class="player-name">👤 <span id="playerNameDisplay">—</span></div>
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="game">🎮 Игра</button>
+                <button class="tab-btn" data-tab="shop">🏪 Магазин</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Лидерборд</button>
             </div>
-            <div class="per-sec" id="perSecDisplay">+0/сек</div>
         </div>
-        <button class="click-btn" id="clickBtn">КЛИК</button>
-        <div class="stats-row">
-            <span>Всего кликов: <span id="totalClicksDisplay">0</span></span>
-            <span>Сила клика: <span id="clickPowerDisplay">1</span></span>
-        </div>
-        <div class="reset-area">
-            <button class="reset-btn" id="resetBtn">⟳ сброс прогресса</button>
-        </div>
-    </div>
 
-    <div class="tab-content" id="tab-shop">
-        <div class="top-panel" style="margin-bottom: 0.8rem;">
-            <div class="score-block">
-                <span>🪙</span>
-                <span class="score-num" id="shopScoreDisplay">0</span>
+        <div class="tab-content active" id="tab-game">
+            <div class="top-panel">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="scoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="perSecDisplay">+0/сек</div>
             </div>
-            <div class="per-sec" id="shopPerSec">+0/сек</div>
+            <button class="click-btn" id="clickBtn">КЛИК</button>
+            <div class="stats-row">
+                <span>Всего кликов: <span id="totalClicksDisplay">0</span></span>
+                <span>Сила клика: <span id="clickPowerDisplay">1</span></span>
+            </div>
+            <div class="reset-area">
+                <button class="reset-btn" id="resetBtn">⟳ сброс прогресса</button>
+            </div>
         </div>
-        <div class="shop-grid" id="shopContainer"></div>
-        <div style="margin-top: 0.8rem; text-align: right; font-size: 0.7rem; color: #5a6f9a;">
-            * цены растут с каждым уровнем
+
+        <div class="tab-content" id="tab-shop">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="shopScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="shopPerSec">+0/сек</div>
+            </div>
+            <div class="shop-grid" id="shopContainer"></div>
+            <div style="margin-top: 0.8rem; text-align: right; font-size: 0.7rem; color: #5a6f9a;">
+                * цены растут с каждым уровнем
+            </div>
         </div>
+
+        <div class="tab-content" id="tab-leaderboard">
+            <div class="leaderboard" id="leaderboardContainer">
+                <div class="lb-empty">🏆 Загрузка...</div>
+            </div>
+            <div class="lb-actions">
+                <button id="saveScoreBtn">💾 Сохранить результат</button>
+                <button class="danger" id="clearLeaderboardBtn">🗑 Очистить</button>
+            </div>
+            <div style="margin-top: 0.5rem; text-align: center; font-size: 0.65rem; color: #5a6f9a;">
+                Сохраняются топ-10 игроков
+            </div>
+        </div>
+
+        <div class="footer">HORIZON CLICKER · v5.0 · глобальный лидерборд</div>
     </div>
 
-    <div class="tab-content" id="tab-leaderboard">
-        <div class="leaderboard" id="leaderboardContainer">
-            <div class="lb-empty">🏆 Загрузка...</div>
-        </div>
-        <div class="lb-actions">
-            <input class="name-input" id="playerNameInput" placeholder="Ваше имя" maxlength="20">
-            <button id="saveScoreBtn">💾 Сохранить результат</button>
-            <button class="danger" id="clearLeaderboardBtn">🗑 Очистить</button>
-        </div>
-        <div style="margin-top: 0.5rem; text-align: center; font-size: 0.65rem; color: #5a6f9a;">
-            Сохраняются топ-10 игроков
-        </div>
-    </div>
+    <script>
+        // ============================================================
+        //  SUPABASE
+        // ============================================================
+        const SUPABASE_URL = 'https://vsavunuhtigqjhnsagqa.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_O-kJHu6vHE_SB_tugQ3ddQ_003DrW2s';
 
-    <div class="footer">SOON · v4.0 · глобальный лидерборд</div>
-</div>
+        // ============================================================
+        //  КОНФИГ МАГАЗИНА
+        // ============================================================
+        const SHOP_ITEMS = [
+            { id: 'clickPower', label: '💪 Сила клика', desc: '+1 за клик', baseCost: 30, costMultiplier: 1.5, maxLevel: 99, effect: (l) => ({ clickBonus: l * 1 }) },
+            { id: 'autoClicker', label: '🤖 Автокликер', desc: '+0.5 кликов/сек', baseCost: 80, costMultiplier: 1.7, maxLevel: 50, effect: (l) => ({ passiveIncome: l * 0.5 }) },
+            { id: 'passiveMulti', label: '📈 Пассивный бонус', desc: '+20% к пассивному доходу', baseCost: 150, costMultiplier: 2.0, maxLevel: 30, effect: (l) => ({ passiveMult: 1 + l * 0.20 }) },
+            { id: 'clickMulti', label: '🔥 Множитель клика', desc: '+15% к силе клика', baseCost: 200, costMultiplier: 2.2, maxLevel: 25, effect: (l) => ({ clickMult: 1 + l * 0.15 }) }
+        ];
 
-<script>
-    // ============================================================
-    //  ПОДКЛЮЧЕНИЕ К SUPABASE (ВАШИ КЛЮЧИ)
-    // ============================================================
-    const SUPABASE_URL = 'https://vsavunuhtigqjhnsagqa.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_O-kJHu6vHE_SB_tugQ3ddQ_003DrW2s';
+        // ============================================================
+        //  СОСТОЯНИЕ
+        // ============================================================
+        let playerName = '';
+        let state = { score: 0, totalClicks: 0, levels: {} };
+        SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
 
-    // ============================================================
-    //  КОНФИГ МАГАЗИНА
-    // ============================================================
-    const SHOP_ITEMS = [
-        {
-            id: 'clickPower',
-            label: '💪 Сила клика',
-            desc: '+1 за клик',
-            baseCost: 30,
-            costMultiplier: 1.5,
-            maxLevel: 99,
-            effect: (level) => ({ clickBonus: level * 1 })
-        },
-        {
-            id: 'autoClicker',
-            label: '🤖 Автокликер',
-            desc: '+0.5 кликов/сек',
-            baseCost: 80,
-            costMultiplier: 1.7,
-            maxLevel: 50,
-            effect: (level) => ({ passiveIncome: level * 0.5 })
-        },
-        {
-            id: 'passiveMulti',
-            label: '📈 Пассивный бонус',
-            desc: '+20% к пассивному доходу',
-            baseCost: 150,
-            costMultiplier: 2.0,
-            maxLevel: 30,
-            effect: (level) => ({ passiveMult: 1 + level * 0.20 })
-        },
-        {
-            id: 'clickMulti',
-            label: '🔥 Множитель клика',
-            desc: '+15% к силе клика',
-            baseCost: 200,
-            costMultiplier: 2.2,
-            maxLevel: 25,
-            effect: (level) => ({ clickMult: 1 + level * 0.15 })
-        }
-    ];
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const registerOverlay = document.getElementById('registerOverlay');
+        const registerInput = document.getElementById('registerInput');
+        const registerBtn = document.getElementById('registerBtn');
+        const registerError = document.getElementById('registerError');
+        const playerNameDisplay = document.getElementById('playerNameDisplay');
 
-    // ============================================================
-    //  СОСТОЯНИЕ
-    // ============================================================
-    let state = {
-        score: 0,
-        totalClicks: 0,
-        levels: {}
-    };
-    SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+        const scoreEl = document.getElementById('scoreDisplay');
+        const shopScoreEl = document.getElementById('shopScoreDisplay');
+        const perSecEl = document.getElementById('perSecDisplay');
+        const shopPerSecEl = document.getElementById('shopPerSec');
+        const totalClicksEl = document.getElementById('totalClicksDisplay');
+        const clickPowerEl = document.getElementById('clickPowerDisplay');
+        const clickBtn = document.getElementById('clickBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shopContainer = document.getElementById('shopContainer');
+        const leaderboardContainer = document.getElementById('leaderboardContainer');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+        const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
 
-    // ============================================================
-    //  DOM
-    // ============================================================
-    const scoreEl = document.getElementById('scoreDisplay');
-    const shopScoreEl = document.getElementById('shopScoreDisplay');
-    const perSecEl = document.getElementById('perSecDisplay');
-    const shopPerSecEl = document.getElementById('shopPerSec');
-    const totalClicksEl = document.getElementById('totalClicksDisplay');
-    const clickPowerEl = document.getElementById('clickPowerDisplay');
-    const clickBtn = document.getElementById('clickBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const shopContainer = document.getElementById('shopContainer');
-    const leaderboardContainer = document.getElementById('leaderboardContainer');
-    const playerNameInput = document.getElementById('playerNameInput');
-    const saveScoreBtn = document.getElementById('saveScoreBtn');
-    const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
-
-    // ============================================================
-    //  ВКЛАДКИ
-    // ============================================================
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = {
-        game: document.getElementById('tab-game'),
-        shop: document.getElementById('tab-shop'),
-        leaderboard: document.getElementById('tab-leaderboard')
-    };
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const tab = btn.dataset.tab;
-            Object.keys(tabContents).forEach(key => {
-                tabContents[key].classList.toggle('active', key === tab);
-            });
-            if (tab === 'leaderboard') renderLeaderboard();
-            if (tab === 'shop') renderShop();
-        });
-    });
-
-    // ============================================================
-    //  ВСПОМОГАТЕЛЬНЫЕ
-    // ============================================================
-    function getCost(item, level) {
-        return Math.floor(item.baseCost * Math.pow(item.costMultiplier, level));
-    }
-
-    function computeEffects() {
-        let clickBonus = 1;
-        let passiveIncome = 0;
-        let passiveMult = 1;
-        let clickMult = 1;
-
-        SHOP_ITEMS.forEach(item => {
-            const lv = state.levels[item.id] || 0;
-            const eff = item.effect(lv);
-            if (eff.clickBonus !== undefined) clickBonus += eff.clickBonus;
-            if (eff.passiveIncome !== undefined) passiveIncome += eff.passiveIncome;
-            if (eff.passiveMult !== undefined) passiveMult = eff.passiveMult;
-            if (eff.clickMult !== undefined) clickMult = eff.clickMult;
-        });
-
-        return {
-            finalClickPower: clickBonus * clickMult,
-            finalPassive: passiveIncome * passiveMult
-        };
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ============================================================
-    //  РЕНДЕР
-    // ============================================================
-    function render() {
-        const eff = computeEffects();
-        const score = Math.floor(state.score);
-
-        scoreEl.textContent = score;
-        shopScoreEl.textContent = score;
-        perSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
-        shopPerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
-        totalClicksEl.textContent = state.totalClicks;
-        clickPowerEl.textContent = eff.finalClickPower.toFixed(1);
-
-        renderShop();
-        saveState();
-    }
-
-    // ============================================================
-    //  МАГАЗИН
-    // ============================================================
-    function renderShop() {
-        shopContainer.innerHTML = '';
-        SHOP_ITEMS.forEach(item => {
-            const lv = state.levels[item.id] || 0;
-            const cost = getCost(item, lv);
-            const maxed = lv >= item.maxLevel;
-            const canAfford = state.score >= cost && !maxed;
-
-            const card = document.createElement('div');
-            card.className = 'shop-card';
-            card.innerHTML = `
-                <div class="title">
-                    <span>${item.label}</span>
-                    <span class="level">ур. ${lv}</span>
-                </div>
-                <div class="desc">${item.desc}</div>
-                <div class="price-row">
-                    <span class="price">🪙 ${cost}</span>
-                    <button class="buy-btn" ${!canAfford ? 'disabled' : ''}>
-                        ${maxed ? 'MAX' : 'Купить'}
-                    </button>
-                </div>
-            `;
-            shopContainer.appendChild(card);
-
-            const btn = card.querySelector('.buy-btn');
-            if (!maxed) {
-                btn.addEventListener('click', () => purchaseItem(item.id));
-            }
-        });
-    }
-
-    function purchaseItem(id) {
-        const item = SHOP_ITEMS.find(i => i.id === id);
-        if (!item) return;
-        const lv = state.levels[id] || 0;
-        if (lv >= item.maxLevel) return;
-        const cost = getCost(item, lv);
-        if (state.score < cost) return;
-
-        state.score -= cost;
-        state.levels[id] = lv + 1;
-        render();
-    }
-
-    // ============================================================
-    //  SUPABASE — ГЛОБАЛЬНЫЙ ЛИДЕРБОРД
-    // ============================================================
-    async function fetchLeaderboard() {
-        try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`
-                }
-            });
-            if (!res.ok) throw new Error('Ошибка загрузки');
-            return await res.json();
-        } catch (e) {
-            console.warn('Не удалось загрузить лидерборд:', e);
-            return null;
-        }
-    }
-
-    async function addScoreToSupabase(name, score) {
-        try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, score })
-            });
-            if (!res.ok) throw new Error('Ошибка сохранения');
-            return true;
-        } catch (e) {
-            console.warn('Не удалось сохранить в глобальный лидерборд:', e);
-            return false;
-        }
-    }
-
-    async function clearLeaderboard() {
-        try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?score=gte.0`, {
-                method: 'DELETE',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`
-                }
-            });
-            if (!res.ok) throw new Error('Ошибка очистки');
-            return true;
-        } catch (e) {
-            console.warn('Не удалось очистить лидерборд:', e);
-            return false;
-        }
-    }
-
-    async function renderLeaderboard() {
-        const data = await fetchLeaderboard();
-        if (!data || data.length === 0) {
-            leaderboardContainer.innerHTML = `<div class="lb-empty">🏆 Пока нет записей. Стань первым!</div>`;
-            return;
-        }
-        let html = '';
-        data.forEach((entry, index) => {
-            const rank = index + 1;
-            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-            html += `
-                <div class="lb-entry">
-                    <span class="rank">${medal}</span>
-                    <span class="name">${escapeHtml(entry.name)}</span>
-                    <span class="lb-score">🪙 ${Math.floor(entry.score)}</span>
-                </div>
-            `;
-        });
-        leaderboardContainer.innerHTML = html;
-    }
-
-    // ============================================================
-    //  ИГРОВАЯ ЛОГИКА
-    // ============================================================
-    function handleClick() {
-        const eff = computeEffects();
-        state.score += eff.finalClickPower;
-        state.totalClicks += 1;
-        render();
-        clickBtn.style.transform = 'scale(0.90)';
-        setTimeout(() => { clickBtn.style.transform = ''; }, 70);
-    }
-
-    let passiveInterval = null;
-    function startPassiveIncome() {
-        if (passiveInterval) clearInterval(passiveInterval);
-        passiveInterval = setInterval(() => {
-            const eff = computeEffects();
-            if (eff.finalPassive > 0) {
-                state.score += eff.finalPassive;
-                render();
-            }
-        }, 1000);
-    }
-
-    // ============================================================
-    //  СОХРАНЕНИЕ / ЗАГРУЗКА (локальное)
-    // ============================================================
-    function saveState() {
-        try {
-            localStorage.setItem('soonShopState', JSON.stringify(state));
-        } catch (e) {}
-    }
-
-    function loadState() {
-        try {
-            const raw = localStorage.getItem('soonShopState');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (typeof parsed.score === 'number' &&
-                    typeof parsed.totalClicks === 'number' &&
-                    parsed.levels && typeof parsed.levels === 'object') {
-                    SHOP_ITEMS.forEach(item => {
-                        if (typeof parsed.levels[item.id] !== 'number') {
-                            parsed.levels[item.id] = 0;
-                        }
-                    });
-                    state = parsed;
+        // ============================================================
+        //  РЕГИСТРАЦИЯ
+        // ============================================================
+        function loadPlayerName() {
+            try {
+                const saved = localStorage.getItem('horizonPlayerName');
+                if (saved && saved.trim()) {
+                    playerName = saved.trim();
                     return true;
                 }
-            }
-        } catch (e) {}
-        return false;
-    }
+            } catch (e) {}
+            return false;
+        }
 
-    // ============================================================
-    //  СБРОС
-    // ============================================================
-    function handleReset() {
-        if (state.score === 0 && state.totalClicks === 0) return;
-        if (confirm('Сбросить весь прогресс игры (магазин и очки)?')) {
-            state.score = 0;
-            state.totalClicks = 0;
-            SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
-            render();
+        function savePlayerName(name) {
+            try {
+                localStorage.setItem('horizonPlayerName', name.trim());
+            } catch (e) {}
+        }
+
+        function showRegister() {
+            registerOverlay.classList.remove('hidden');
+            registerInput.value = '';
+            registerError.textContent = '';
+            setTimeout(() => registerInput.focus(), 100);
+        }
+
+        function hideRegister() {
+            registerOverlay.classList.add('hidden');
+            playerNameDisplay.textContent = playerName;
+        }
+
+        function handleRegister() {
+            const name = registerInput.value.trim();
+            if (name.length < 2) {
+                registerError.textContent = '❌ Минимум 2 символа';
+                return;
+            }
+            if (name.length > 20) {
+                registerError.textContent = '❌ Максимум 20 символов';
+                return;
+            }
+            if (!/^[a-zA-Z0-9_а-яА-Я\-]+$/.test(name)) {
+                registerError.textContent = '❌ Только буквы, цифры, _ и -';
+                return;
+            }
+            playerName = name;
+            savePlayerName(name);
+            hideRegister();
+            // обновляем лидерборд, чтобы подсветить игрока
+            renderLeaderboard();
+        }
+
+        registerBtn.addEventListener('click', handleRegister);
+        registerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleRegister();
+        });
+
+        // ============================================================
+        //  ВКЛАДКИ
+        // ============================================================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = {
+            game: document.getElementById('tab-game'),
+            shop: document.getElementById('tab-shop'),
+            leaderboard: document.getElementById('tab-leaderboard')
+        };
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                Object.keys(tabContents).forEach(key => {
+                    tabContents[key].classList.toggle('active', key === tab);
+                });
+                if (tab === 'leaderboard') renderLeaderboard();
+                if (tab === 'shop') renderShop();
+            });
+        });
+
+        // ============================================================
+        //  ВСПОМОГАТЕЛЬНЫЕ
+        // ============================================================
+        function getCost(item, level) {
+            return Math.floor(item.baseCost * Math.pow(item.costMultiplier, level));
+        }
+
+        function computeEffects() {
+            let clickBonus = 1, passiveIncome = 0, passiveMult = 1, clickMult = 1;
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const eff = item.effect(lv);
+                if (eff.clickBonus !== undefined) clickBonus += eff.clickBonus;
+                if (eff.passiveIncome !== undefined) passiveIncome += eff.passiveIncome;
+                if (eff.passiveMult !== undefined) passiveMult = eff.passiveMult;
+                if (eff.clickMult !== undefined) clickMult = eff.clickMult;
+            });
+            return { finalClickPower: clickBonus * clickMult, finalPassive: passiveIncome * passiveMult };
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  РЕНДЕР
+        // ============================================================
+        function render() {
+            const eff = computeEffects();
+            const score = Math.floor(state.score);
+            scoreEl.textContent = score;
+            shopScoreEl.textContent = score;
+            perSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            shopPerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            totalClicksEl.textContent = state.totalClicks;
+            clickPowerEl.textContent = eff.finalClickPower.toFixed(1);
+            renderShop();
             saveState();
         }
-    }
 
-    // ============================================================
-    //  СОБЫТИЯ
-    // ============================================================
-    clickBtn.addEventListener('click', handleClick);
-    resetBtn.addEventListener('click', handleReset);
+        // ============================================================
+        //  МАГАЗИН
+        // ============================================================
+        function renderShop() {
+            shopContainer.innerHTML = '';
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const cost = getCost(item, lv);
+                const maxed = lv >= item.maxLevel;
+                const canAfford = state.score >= cost && !maxed;
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                card.innerHTML = `
+                    <div class="title"><span>${item.label}</span><span class="level">ур. ${lv}</span></div>
+                    <div class="desc">${item.desc}</div>
+                    <div class="price-row">
+                        <span class="price">🪙 ${cost}</span>
+                        <button class="buy-btn" ${!canAfford ? 'disabled' : ''}>${maxed ? 'MAX' : 'Купить'}</button>
+                    </div>
+                `;
+                shopContainer.appendChild(card);
+                const btn = card.querySelector('.buy-btn');
+                if (!maxed) {
+                    btn.addEventListener('click', () => purchaseItem(item.id));
+                }
+            });
+        }
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Space') {
-            const activeTab = document.querySelector('.tab-content.active');
-            if (activeTab && activeTab.id === 'tab-game') {
-                e.preventDefault();
-                handleClick();
+        function purchaseItem(id) {
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+            const lv = state.levels[id] || 0;
+            if (lv >= item.maxLevel) return;
+            const cost = getCost(item, lv);
+            if (state.score < cost) return;
+            state.score -= cost;
+            state.levels[id] = lv + 1;
+            render();
+        }
+
+        // ============================================================
+        //  SUPABASE — ЛИДЕРБОРД
+        // ============================================================
+        async function fetchLeaderboard() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                return await res.json();
+            } catch (e) {
+                console.warn('Не удалось загрузить лидерборд:', e);
+                return null;
             }
         }
-    });
 
-    saveScoreBtn.addEventListener('click', async () => {
-        const name = playerNameInput.value.trim() || 'Игрок';
-        const score = Math.floor(state.score);
-        if (score < 1) {
-            alert('Наберите хотя бы 1 очко!');
-            return;
+        async function addScoreToSupabase(name, score) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, score })
+                });
+                if (!res.ok) throw new Error('Ошибка сохранения');
+                return true;
+            } catch (e) {
+                console.warn('Не удалось сохранить в глобальный лидерборд:', e);
+                return false;
+            }
         }
-        const success = await addScoreToSupabase(name, score);
-        if (success) {
-            alert(`✅ Рекорд (${score}) сохранён в глобальный лидерборд!`);
-            playerNameInput.value = '';
-            renderLeaderboard();
+
+        async function clearLeaderboard() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?score=gte.0`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка очистки');
+                return true;
+            } catch (e) {
+                console.warn('Не удалось очистить лидерборд:', e);
+                return false;
+            }
+        }
+
+        async function renderLeaderboard() {
+            const data = await fetchLeaderboard();
+            if (!data || data.length === 0) {
+                leaderboardContainer.innerHTML = `<div class="lb-empty">🏆 Пока нет записей. Стань первым!</div>`;
+                return;
+            }
+            let html = '';
+            data.forEach((entry, index) => {
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                const isMe = entry.name.toLowerCase() === playerName.toLowerCase();
+                html += `
+                    <div class="lb-entry ${isMe ? 'me' : ''}">
+                        <span class="rank">${medal}</span>
+                        <span class="name">${escapeHtml(entry.name)} ${isMe ? '⭐' : ''}</span>
+                        <span class="lb-score">🪙 ${Math.floor(entry.score)}</span>
+                    </div>
+                `;
+            });
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // ============================================================
+        //  ИГРОВАЯ ЛОГИКА
+        // ============================================================
+        function handleClick() {
+            const eff = computeEffects();
+            state.score += eff.finalClickPower;
+            state.totalClicks += 1;
+            render();
+            clickBtn.style.transform = 'scale(0.90)';
+            setTimeout(() => { clickBtn.style.transform = ''; }, 70);
+        }
+
+        let passiveInterval = null;
+        function startPassiveIncome() {
+            if (passiveInterval) clearInterval(passiveInterval);
+            passiveInterval = setInterval(() => {
+                const eff = computeEffects();
+                if (eff.finalPassive > 0) {
+                    state.score += eff.finalPassive;
+                    render();
+                }
+            }, 1000);
+        }
+
+        // ============================================================
+        //  СОХРАНЕНИЕ / ЗАГРУЗКА
+        // ============================================================
+        function saveState() {
+            try { localStorage.setItem('horizonGameState', JSON.stringify(state)); } catch (e) {}
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('horizonGameState');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (typeof parsed.score === 'number' && typeof parsed.totalClicks === 'number' && parsed.levels) {
+                        SHOP_ITEMS.forEach(item => {
+                            if (typeof parsed.levels[item.id] !== 'number') parsed.levels[item.id] = 0;
+                        });
+                        state = parsed;
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        // ============================================================
+        //  СБРОС
+        // ============================================================
+        function handleReset() {
+            if (state.score === 0 && state.totalClicks === 0) return;
+            if (confirm('Сбросить весь прогресс игры (магазин и очки)?')) {
+                state.score = 0;
+                state.totalClicks = 0;
+                SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+                render();
+                saveState();
+            }
+        }
+
+        // ============================================================
+        //  СОБЫТИЯ
+        // ============================================================
+        clickBtn.addEventListener('click', handleClick);
+        resetBtn.addEventListener('click', handleReset);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Space') {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab && activeTab.id === 'tab-game') {
+                    e.preventDefault();
+                    handleClick();
+                }
+            }
+        });
+
+        saveScoreBtn.addEventListener('click', async () => {
+            if (!playerName) {
+                alert('Сначала введите ник!');
+                return;
+            }
+            const score = Math.floor(state.score);
+            if (score < 1) {
+                alert('Наберите хотя бы 1 очко!');
+                return;
+            }
+            const success = await addScoreToSupabase(playerName, score);
+            if (success) {
+                alert(`✅ Рекорд (${score}) сохранён в глобальный лидерборд!`);
+                renderLeaderboard();
+            } else {
+                alert('❌ Не удалось сохранить. Проверьте интернет или ключи Supabase.');
+            }
+        });
+
+        clearLeaderboardBtn.addEventListener('click', async () => {
+            if (!confirm('Удалить все записи лидерборда?')) return;
+            const success = await clearLeaderboard();
+            if (success) {
+                alert('🗑 Лидерборд очищен!');
+                renderLeaderboard();
+            } else {
+                alert('❌ Не удалось очистить. Проверьте интернет.');
+            }
+        });
+
+        // ============================================================
+        //  ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        const hasName = loadPlayerName();
+        loadState();
+        render();
+
+        if (!hasName) {
+            showRegister();
         } else {
-            alert('❌ Не удалось сохранить. Проверьте интернет или ключи Supabase.');
-        }
-    });
-
-    clearLeaderboardBtn.addEventListener('click', async () => {
-        if (!confirm('Удалить все записи лидерборда?')) return;
-        const success = await clearLeaderboard();
-        if (success) {
-            alert('🗑 Лидерборд очищен!');
+            hideRegister();
             renderLeaderboard();
-        } else {
-            alert('❌ Не удалось очистить. Проверьте интернет.');
         }
-    });
 
-    // ============================================================
-    //  ИНИЦИАЛИЗАЦИЯ
-    // ============================================================
-    loadState();
-    render();
-    renderLeaderboard();
-    startPassiveIncome();
+        startPassiveIncome();
 
-    window.addEventListener('beforeunload', () => {
-        saveState();
-    });
+        window.addEventListener('beforeunload', () => { saveState(); });
+        setInterval(() => { saveState(); }, 15000);
 
-    setInterval(() => {
-        saveState();
-    }, 15000);
-
-    console.log('🔥 SOON CLICKER v4.0 с глобальным лидербордом загружен!');
-</script>
+        console.log('🌌 HORIZON CLICKER v5.0 загружен!');
+    </script>
 </body>
 </html>
