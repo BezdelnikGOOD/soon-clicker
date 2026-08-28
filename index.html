@@ -1,0 +1,3265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HORIZON CLICKER · v9.2</title>
+    <style>
+        /* ===== ОСНОВНЫЕ СТИЛИ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #0b0e1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 1rem;
+            overflow: hidden;
+        }
+        .app {
+            background: #141a2b;
+            padding: 1.5rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), inset 0 0 0 1px #2e3a5a;
+            max-width: 800px;
+            width: 100%;
+            max-height: 98vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .app::-webkit-scrollbar {
+            width: 4px;
+        }
+        .app::-webkit-scrollbar-track {
+            background: #0f1422;
+            border-radius: 10px;
+        }
+        .app::-webkit-scrollbar-thumb {
+            background: #2e3f6a;
+            border-radius: 10px;
+        }
+
+        .particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            font-weight: 700;
+            font-size: 1.2rem;
+            animation: particleFly 0.7s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            will-change: transform, opacity;
+        }
+        @keyframes particleFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(360deg);
+            }
+        }
+
+        .register-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 14, 26, 0.96);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+        }
+        .register-overlay.hidden {
+            display: none;
+        }
+        .register-box {
+            background: #141a2b;
+            padding: 2.5rem 2rem;
+            border-radius: 2.5rem;
+            border: 1px solid #2e3f6a;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(79, 126, 255, 0.15);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .register-box h1 {
+            color: #b7c9ff;
+            font-weight: 300;
+            letter-spacing: 4px;
+            font-size: 2rem;
+            text-shadow: 0 0 20px #3f5f9f;
+        }
+        .register-box .sub {
+            color: #7a8fc9;
+            font-size: 0.85rem;
+            margin: 0.3rem 0 1.5rem;
+        }
+        .register-box input {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid #2e3f6a;
+            background: #0f1422;
+            color: #d6e5ff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .register-box input:focus {
+            border-color: #4f7eff;
+            box-shadow: 0 0 20px rgba(79, 126, 255, 0.2);
+        }
+        .register-box input::placeholder {
+            color: #5a6f9a;
+        }
+        .register-box button {
+            margin-top: 1.2rem;
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 60px;
+            border: none;
+            background: radial-gradient(circle at 30% 25%, #4f7eff, #1a2d66);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.1s;
+            text-shadow: 0 2px 0 #0b142f;
+        }
+        .register-box button:active {
+            transform: scale(0.96);
+        }
+        .register-box .error {
+            color: #ff6b7a;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            height: 1.2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .header .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .header .title-wrap h1 {
+            color: #b7c9ff;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-size: 1.3rem;
+            text-shadow: 0 0 8px #3f5f9f;
+            cursor: default;
+        }
+        .header .title-wrap .secret-trigger {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: transparent;
+            user-select: none;
+        }
+        .header .title-wrap .secret-trigger:hover {
+            color: rgba(79, 126, 255, 0.1);
+        }
+        .header .player-name {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: #0f1422;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #2e3f6a;
+        }
+        .header .player-name span {
+            color: #d6e5ff;
+            font-weight: 600;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #1a2645;
+            border: 1px solid #2e3f6a;
+            color: #8ba0dd;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: 0.1s;
+        }
+        .tab-btn.active {
+            background: #2e4a7a;
+            border-color: #4f7eff;
+            color: #d6e5ff;
+            box-shadow: 0 0 12px #1f3b8a;
+        }
+        .tab-btn:active {
+            transform: scale(0.94);
+        }
+        .tab-btn.admin-tab {
+            border-color: #ff6b4a;
+            color: #ff8a6a;
+        }
+        .tab-btn.admin-tab.active {
+            background: #4a1f2a;
+            border-color: #ff6b4a;
+            color: #ffb09a;
+            box-shadow: 0 0 20px rgba(255, 80, 40, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fade 0.2s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fade {
+            from {
+                opacity: 0.3;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            background: #0f1422;
+            padding: 0.6rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid #2e3f6a;
+            margin-bottom: 1rem;
+        }
+        .score-block {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            color: #8ba0dd;
+            font-weight: 500;
+        }
+        .score-num {
+            color: #d6e5ff;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .per-sec {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: #1a2645;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            border: 1px solid #314778;
+        }
+        .click-btn {
+            background: radial-gradient(circle at 30% 25%, #4f7eff, #1a2d66);
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 10px 0 #0b142f, 0 8px 25px #1f3b8a;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.06s linear;
+            margin: 0.2rem auto 1rem;
+            display: block;
+            text-shadow: 0 3px 0 #0b142f;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        .click-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 4px 0 #0b142f;
+        }
+        .click-btn.banned {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #3a1a1f;
+            background: radial-gradient(circle at 30% 25%, #4a2a2a, #2a1a1a);
+        }
+        .click-btn.maintenance-mode {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #3a3a1a;
+            background: radial-gradient(circle at 30% 25%, #4a4a2a, #2a2a1a);
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: #0f1422;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #1f2d4a;
+            margin-top: 0.3rem;
+        }
+        .stats-row span {
+            color: #d4e2ff;
+            font-weight: 600;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .shop-card {
+            background: #0f1629;
+            border: 1px solid #25345a;
+            border-radius: 1.2rem;
+            padding: 0.7rem 0.8rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .shop-card .title {
+            color: #b7ccff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .shop-card .title .level {
+            color: #7a8fc9;
+            font-size: 0.7rem;
+            background: #1a2645;
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+        }
+        .shop-card .desc {
+            color: #8ba0dd;
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+        .shop-card .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.2rem;
+        }
+        .shop-card .price {
+            color: #f5c542;
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: #1e1f2e;
+            padding: 0.1rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid #3d3f5a;
+        }
+        .shop-card button {
+            background: #1f2b4a;
+            border: none;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            color: #d4e2ff;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.08s;
+            border: 1px solid #314778;
+        }
+        .shop-card button:active {
+            transform: scale(0.94);
+            background: #2b3b64;
+        }
+        .shop-card button:disabled {
+            opacity: 0.4;
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+        .shop-card button.buy-btn {
+            background: #1e3a5f;
+            border-color: #3a6a9f;
+        }
+        .shop-card button.buy-btn:hover:not(:disabled) {
+            background: #2a4e7a;
+        }
+        .shop-card.rename-card {
+            border-color: #f5c542;
+            background: #1a1f2a;
+        }
+        .shop-card.rename-card .title {
+            color: #f5c542;
+        }
+
+        .leaderboard {
+            margin-top: 0.5rem;
+        }
+        .lb-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f1629;
+            border: 1px solid #1f2d4a;
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+            margin-bottom: 0.3rem;
+            color: #b7ccff;
+        }
+        .lb-entry .rank {
+            font-weight: 700;
+            color: #4f7eff;
+            min-width: 30px;
+        }
+        .lb-entry .name {
+            flex: 1;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+        .lb-entry .lb-score {
+            color: #f5c542;
+            font-weight: 700;
+        }
+        .lb-entry.me {
+            border-color: #4f7eff;
+            background: #1a2d4a;
+            box-shadow: 0 0 15px rgba(79, 126, 255, 0.1);
+        }
+        .lb-empty {
+            color: #5a6f9a;
+            text-align: center;
+            padding: 1.5rem 0;
+            font-style: italic;
+        }
+        .lb-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .lb-actions button {
+            background: #1a2645;
+            border: 1px solid #2e3f6a;
+            color: #b7ccff;
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: 0.08s;
+        }
+        .lb-actions button:active {
+            transform: scale(0.94);
+            background: #2b3b64;
+        }
+        .lb-actions button.danger {
+            background: #3a1f2e;
+            border-color: #6a3148;
+            color: #ffb0c8;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .admin-card {
+            background: #0f1629;
+            border: 1px solid #2a3a5a;
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+        }
+        .admin-card h3 {
+            color: #ff8a6a;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            letter-spacing: 1px;
+        }
+        .admin-card .admin-row {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 0.3rem;
+        }
+        .admin-card input,
+        .admin-card select {
+            background: #0f1422;
+            border: 1px solid #2e3f6a;
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            color: #d6e5ff;
+            font-size: 0.8rem;
+            outline: none;
+            flex: 1;
+            min-width: 80px;
+        }
+        .admin-card input::placeholder {
+            color: #5a6f9a;
+        }
+        .admin-card button {
+            background: #1a2645;
+            border: 1px solid #2e3f6a;
+            color: #b7ccff;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.7rem;
+            transition: 0.08s;
+            white-space: nowrap;
+        }
+        .admin-card button:active {
+            transform: scale(0.94);
+        }
+        .admin-card button.admin-danger {
+            background: #3a1f2e;
+            border-color: #6a3148;
+            color: #ffb0c8;
+        }
+        .admin-card button.admin-success {
+            background: #1a3a2e;
+            border-color: #2a6a4a;
+            color: #8affb0;
+        }
+        .admin-card .stat-line {
+            color: #8ba0dd;
+            font-size: 0.8rem;
+            padding: 0.1rem 0;
+        }
+        .admin-card .stat-line span {
+            color: #d6e5ff;
+            font-weight: 600;
+        }
+        .admin-full {
+            grid-column: 1 / -1;
+        }
+        .admin-warning {
+            color: #ff6b4a;
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .reset-area {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.8rem;
+        }
+        .reset-btn {
+            background: #3a1f2e;
+            border: 1px solid #6a3148;
+            color: #ffb0c8;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.08s;
+            font-size: 0.8rem;
+        }
+        .reset-btn:active {
+            transform: scale(0.94);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 0.8rem;
+            font-size: 0.6rem;
+            color: #3d4e7a;
+            letter-spacing: 1px;
+        }
+
+        .announcement-banner {
+            background: #1a2d4a;
+            border: 1px solid #4f7eff;
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.8rem;
+            color: #b7ccff;
+            font-size: 0.85rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(79, 126, 255, 0.1);
+            display: none;
+        }
+        .announcement-banner .close-announce {
+            float: right;
+            cursor: pointer;
+            color: #7a8fc9;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .maintenance-banner {
+            background: #2a1a1a;
+            border: 1px solid #ff6b4a;
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.8rem;
+            color: #ffb09a;
+            font-size: 0.85rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 80, 40, 0.1);
+            display: none;
+        }
+        .maintenance-banner .close-maintenance {
+            float: right;
+            cursor: pointer;
+            color: #ff6b4a;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .glow-text {
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #ff6b6b);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowMove 3s linear infinite;
+            font-weight: 700;
+        }
+        @keyframes rainbowMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 300% 50%;
+            }
+        }
+        .owner-glow {
+            background: linear-gradient(90deg, #ffd700, #ff6b00, #ffd700, #ff4500, #ffd700);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireMove 2s linear infinite;
+            font-weight: 700;
+        }
+        @keyframes fireMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 300% 50%;
+            }
+        }
+
+        .promo-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .promo-container input {
+            background: #0f1422;
+            border: 1px solid #2e3f6a;
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            color: #d6e5ff;
+            font-size: 0.9rem;
+            outline: none;
+            flex: 1;
+            min-width: 150px;
+            text-transform: uppercase;
+        }
+        .promo-container input::placeholder {
+            color: #5a6f9a;
+            text-transform: none;
+        }
+        .promo-container button {
+            background: #1e3a5f;
+            border: 1px solid #3a6a9f;
+            color: #d4e2ff;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.08s;
+        }
+        .promo-container button:active {
+            transform: scale(0.94);
+        }
+        .promo-container button:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .promo-message {
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            min-height: 1.2rem;
+        }
+        .promo-message.success {
+            color: #6bcb77;
+        }
+        .promo-message.error {
+            color: #ff6b6b;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .profile-card {
+            background: #0f1629;
+            border: 1px solid #25345a;
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+        }
+        .profile-card h3 {
+            color: #b7ccff;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            letter-spacing: 1px;
+        }
+        .profile-card .stat-line {
+            color: #8ba0dd;
+            font-size: 0.8rem;
+            padding: 0.1rem 0;
+        }
+        .profile-card .stat-line span {
+            color: #d6e5ff;
+            font-weight: 600;
+        }
+        .profile-card .vip-badge {
+            color: #ffd700;
+            font-weight: 700;
+            background: #1a1f2a;
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+            border: 1px solid #ffd700;
+            font-size: 0.7rem;
+        }
+        .profile-search {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .profile-search input {
+            background: #0f1422;
+            border: 1px solid #2e3f6a;
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            color: #d6e5ff;
+            font-size: 0.9rem;
+            outline: none;
+            flex: 1;
+            min-width: 150px;
+        }
+        .profile-search input::placeholder {
+            color: #5a6f9a;
+        }
+        .profile-search button {
+            background: #1e3a5f;
+            border: 1px solid #3a6a9f;
+            color: #d4e2ff;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.08s;
+        }
+        .profile-search button:active {
+            transform: scale(0.94);
+        }
+        .profile-not-found {
+            color: #ff6b7a;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .profile-owner-tag {
+            color: #ff8a6a;
+            font-size: 0.7rem;
+            background: #2a1a1a;
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+            border: 1px solid #ff6b4a;
+        }
+
+        .admin-prefix-1 {
+            color: #6bcb77;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(107, 203, 119, 0.3);
+        }
+        .admin-prefix-2 {
+            color: #4fc3ff;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(79, 195, 255, 0.3);
+        }
+        .admin-prefix-3 {
+            color: #ff6b6b;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+        .admin-prefix-owner {
+            color: #ffd700;
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ===== КЕЙСЫ ===== */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .case-card {
+            background: #0f1629;
+            border: 2px solid #25345a;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .case-card:hover {
+            transform: translateY(-4px);
+            border-color: #4f7eff;
+            box-shadow: 0 0 30px rgba(79, 126, 255, 0.1);
+        }
+        .case-card .case-glow {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            pointer-events: none;
+            animation: rotateGlow 10s linear infinite;
+        }
+        @keyframes rotateGlow {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .case-card .case-image {
+            width: 100%;
+            max-width: 140px;
+            height: auto;
+            border-radius: 1rem;
+            margin: 0 auto 0.3rem;
+            display: block;
+            box-shadow: 0 0 20px rgba(79, 126, 255, 0.05);
+            transition: 0.2s;
+            position: relative;
+            z-index: 1;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            background: #0b0e1a;
+            padding: 0.2rem;
+        }
+        .case-card .case-image:hover {
+            transform: scale(1.02);
+        }
+        .case-card .case-name {
+            color: #d6e5ff;
+            font-weight: 700;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        .case-card .case-price {
+            color: #f5c542;
+            font-weight: 700;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+        .case-card .case-btn {
+            background: radial-gradient(circle at 30% 25%, #f5c542, #b38728);
+            border: none;
+            padding: 0.4rem 1.5rem;
+            border-radius: 60px;
+            color: #0b0e1a;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.1s;
+            margin-top: 0.3rem;
+            position: relative;
+            z-index: 1;
+        }
+        .case-card .case-btn:active {
+            transform: scale(0.94);
+        }
+        .case-card .case-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .case-card.rare {
+            border-color: #4fc3ff;
+        }
+        .case-card.rare .case-glow {
+            background: radial-gradient(circle, rgba(79, 195, 255, 0.05), transparent 70%);
+        }
+        .case-card.legendary {
+            border-color: #f5c542;
+            box-shadow: 0 0 40px rgba(245, 197, 66, 0.05);
+        }
+        .case-card.legendary .case-glow {
+            background: radial-gradient(circle, rgba(245, 197, 66, 0.08), transparent 70%);
+        }
+
+        .case-result {
+            margin-top: 0.8rem;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            background: #0b0e1a;
+            border: 1px solid #25345a;
+            display: none;
+            animation: fadeIn 0.3s;
+            text-align: center;
+        }
+        .case-result.show {
+            display: block;
+        }
+        .case-result .rarity-common {
+            color: #8ba0dd;
+        }
+        .case-result .rarity-rare {
+            color: #4fc3ff;
+        }
+        .case-result .rarity-epic {
+            color: #aa66ff;
+        }
+        .case-result .rarity-legendary {
+            color: #f5c542;
+            text-shadow: 0 0 20px rgba(245, 197, 66, 0.3);
+        }
+        .case-result .big-reward {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .case-history {
+            margin-top: 0.5rem;
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+            background: #0b0e1a;
+            border-radius: 1rem;
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #1f2d4a;
+        }
+        .case-history::-webkit-scrollbar {
+            width: 3px;
+        }
+        .case-history::-webkit-scrollbar-track {
+            background: #0f1422;
+            border-radius: 10px;
+        }
+        .case-history::-webkit-scrollbar-thumb {
+            background: #2e3f6a;
+            border-radius: 10px;
+        }
+        .case-history-item {
+            color: #8ba0dd;
+            font-size: 0.7rem;
+            padding: 0.15rem 0;
+            border-bottom: 1px solid #1a1f2a;
+            display: flex;
+            justify-content: space-between;
+        }
+        .case-history-item .item-common {
+            color: #8ba0dd;
+        }
+        .case-history-item .item-rare {
+            color: #4fc3ff;
+        }
+        .case-history-item .item-epic {
+            color: #aa66ff;
+        }
+        .case-history-item .item-legendary {
+            color: #f5c542;
+        }
+
+        @media (max-width: 650px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            .shop-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            .cases-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .click-btn {
+                width: 110px;
+                height: 110px;
+                font-size: 1.3rem;
+            }
+            .score-num {
+                font-size: 1.6rem;
+            }
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            .tab-btn {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.7rem;
+            }
+            .register-box {
+                padding: 1.8rem 1.2rem;
+            }
+            .register-box h1 {
+                font-size: 1.5rem;
+            }
+            .promo-container {
+                flex-direction: column;
+            }
+            .promo-container input {
+                width: 100%;
+            }
+            .profile-search {
+                flex-direction: column;
+            }
+            .profile-search input {
+                width: 100%;
+            }
+            .case-card .case-image {
+                max-width: 100px;
+            }
+        }
+        @media (max-width: 450px) {
+            .cases-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="particle-container" id="particleContainer"></div>
+
+    <div class="register-overlay" id="registerOverlay">
+        <div class="register-box">
+            <h1>🌌 HORIZON</h1>
+            <div class="sub">Введите ваш игровой ник</div>
+            <input type="text" id="registerInput" placeholder="Например: Horizon_Pro" maxlength="20" autofocus>
+            <div class="error" id="registerError"></div>
+            <button id="registerBtn">🚀 Войти в игру</button>
+        </div>
+    </div>
+
+    <div class="app" id="app">
+        <div class="header">
+            <div class="title-wrap">
+                <h1 id="secretAdminTrigger">🌌 HORIZON</h1>
+                <button class="secret-trigger" id="secretAdminTriggerBtn" title="Админ-панель (5 кликов)">⚙️</button>
+            </div>
+            <div class="player-name">👤 <span id="playerNameDisplay">—</span></div>
+            <div class="tab-buttons" id="tabButtons">
+                <button class="tab-btn active" data-tab="game">🎮 Игра</button>
+                <button class="tab-btn" data-tab="shop">🏪 Магазин</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Лидерборд</button>
+                <button class="tab-btn" data-tab="promo">🎫 Промокоды</button>
+                <button class="tab-btn" data-tab="profile">👤 Профиль</button>
+                <button class="tab-btn" data-tab="cases">🎁 Кейсы</button>
+            </div>
+        </div>
+
+        <div class="announcement-banner" id="announcementBanner">
+            <span class="close-announce" id="closeAnnounce">✕</span>
+            <span id="announcementText"></span>
+        </div>
+
+        <div class="maintenance-banner" id="maintenanceBanner">
+            <span class="close-maintenance" id="closeMaintenance">✕</span>
+            <span id="maintenanceText">🛠️ Технические работы. Скоро вернёмся!</span>
+        </div>
+
+        <div class="tab-content active" id="tab-game">
+            <div class="top-panel">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="scoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="perSecDisplay">+0/сек</div>
+            </div>
+            <button class="click-btn" id="clickBtn">КЛИК</button>
+            <div class="stats-row">
+                <span>Всего кликов: <span id="totalClicksDisplay">0</span></span>
+                <span>Сила клика: <span id="clickPowerDisplay">1</span></span>
+            </div>
+            <div class="reset-area">
+                <button class="reset-btn" id="resetBtn">⟳ сброс прогресса</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-shop">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="shopScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="shopPerSec">+0/сек</div>
+            </div>
+            <div class="shop-grid" id="shopContainer"></div>
+            <div style="margin-top: 0.8rem; text-align: right; font-size: 0.7rem; color: #5a6f9a;">
+                * цены растут с каждым уровнем
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-leaderboard">
+            <div class="leaderboard" id="leaderboardContainer">
+                <div class="lb-empty">🏆 Загрузка...</div>
+            </div>
+            <div class="lb-actions">
+                <button id="saveScoreBtn">💾 Сохранить результат</button>
+                <button class="danger" id="clearLeaderboardBtn">🗑 Очистить</button>
+            </div>
+            <div style="margin-top: 0.5rem; text-align: center; font-size: 0.65rem; color: #5a6f9a;">
+                Сохраняются топ-10 игроков
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-promo">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="promoScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="promoPerSec">+0/сек</div>
+            </div>
+            <div style="background:#0f1629; border:1px solid #25345a; border-radius:1.2rem; padding:1rem;">
+                <h3 style="color:#f5c542; font-weight:300; margin-bottom:0.5rem;">🎫 Введите промокод</h3>
+                <div class="promo-container">
+                    <input type="text" id="promoInput" placeholder="Например: HORIZON100" maxlength="30">
+                    <button id="promoActivateBtn">✅ Активировать</button>
+                </div>
+                <div class="promo-message" id="promoMessage"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-profile">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="profileScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="profilePerSec">+0/сек</div>
+            </div>
+            <div class="profile-search">
+                <input type="text" id="profileSearchInput" placeholder="Ник игрока для просмотра">
+                <button id="profileSearchBtn">🔍 Найти</button>
+                <button id="profileResetBtn" style="background:#3a1f2e; border-color:#6a3148; color:#ffb0c8;">↺ Мой профиль</button>
+            </div>
+            <div id="profileContent">
+                <div style="color:#7a8fc9; text-align:center; padding:1rem;">⏳ Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- ===== ВКЛАДКА КЕЙСЫ ===== -->
+        <div class="tab-content" id="tab-cases">
+            <div class="top-panel">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="caseScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="casePerSec">+0/сек</div>
+            </div>
+            <div class="cases-grid" id="casesGrid"></div>
+            <div class="case-result" id="caseResult"></div>
+            <div class="case-history" id="caseHistory">
+                <div style="color:#5a6f9a; text-align:center; font-size:0.75rem; padding:0.3rem;">История открытий</div>
+            </div>
+        </div>
+
+        <!-- ===== АДМИН-ПАНЕЛЬ ===== -->
+        <div class="tab-content" id="tab-admin">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <h2 style="color:#ff8a6a; font-weight:300; letter-spacing:2px;">🔐 АДМИН-ПАНЕЛЬ</h2>
+                <span style="color:#7a8fc9; font-size:0.7rem;">Владелец: <span style="color:#ff8a6a; font-weight:600;">tester</span></span>
+            </div>
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h3>📊 Статистика</h3>
+                    <div class="stat-line">Всего игроков: <span id="adminTotalPlayers">0</span></div>
+                    <div class="stat-line">Средний счёт: <span id="adminAvgScore">0</span></div>
+                    <div class="stat-line">Топ-1: <span id="adminTop1">—</span></div>
+                    <button id="adminRefreshStats" style="margin-top:0.3rem;">🔄 Обновить</button>
+                </div>
+                <div class="admin-card">
+                    <h3>👥 Управление игроками</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminPlayerSearch" placeholder="Ник игрока">
+                        <button id="adminFindPlayer">🔍 Найти</button>
+                    </div>
+                    <div class="admin-row" id="adminPlayerResult" style="font-size:0.75rem; color:#8ba0dd; min-height:1.2rem;"></div>
+                    <div class="admin-row">
+                        <button id="adminDeletePlayer" class="admin-danger">🗑 Удалить</button>
+                        <button id="adminBanPlayer" class="admin-danger">⛔ Бан</button>
+                        <button id="adminUnbanPlayer" class="admin-success">✅ Разбан</button>
+                    </div>
+                    <div id="adminBannedList" style="font-size:0.7rem; color:#ff6b7a; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>🎁 Выдача бонусов</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminBonusPlayer" placeholder="Ник игрока">
+                        <input type="number" id="adminBonusAmount" placeholder="Сумма" value="100" style="max-width:80px;">
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminGiveBonus" class="admin-success">💰 Выдать</button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3>📢 Объявление</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminAnnounceInput" placeholder="Текст объявления" style="flex:2;">
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminSendAnnounce" class="admin-success">📨 Отправить всем</button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3>🎫 Создать промокод</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminPromoCode" placeholder="Код (например: HORIZON100)" style="flex:1; text-transform:uppercase;">
+                        <input type="number" id="adminPromoReward" placeholder="Награда" value="100" style="max-width:80px;">
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminCreatePromo" class="admin-success">✅ Создать</button>
+                    </div>
+                    <div id="adminPromoResult" style="font-size:0.75rem; color:#8ba0dd; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>👑 Управление админами</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminAdminName" placeholder="Ник игрока">
+                        <select id="adminAdminLevel">
+                            <option value="1">Админ lvl 1</option>
+                            <option value="2">Админ lvl 2</option>
+                            <option value="3">Админ lvl 3</option>
+                            <option value="0">Снять админку</option>
+                        </select>
+                        <button id="adminSetAdmin" class="admin-success">✅ Назначить</button>
+                    </div>
+                    <div id="adminAdminResult" style="font-size:0.75rem; color:#8ba0dd; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>🛠️ Технический перерыв</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminMaintenanceMessage" placeholder="Текст уведомления" value="🛠️ Технические работы. Скоро вернёмся!" style="flex:2;">
+                        <button id="adminMaintenanceEnable" class="admin-danger">⏸ Включить</button>
+                        <button id="adminMaintenanceDisable" class="admin-success">▶️ Выключить</button>
+                    </div>
+                    <div id="adminMaintenanceStatus" style="font-size:0.75rem; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card admin-full">
+                    <h3 style="color:#ff6b4a;">⚠️ Опасные действия</h3>
+                    <div class="admin-row">
+                        <button id="adminFullClear" class="admin-danger">🗑 Полная очистка лидерборда</button>
+                        <button id="adminFullReset" class="admin-danger">💣 Сброс всех игроков</button>
+                    </div>
+                    <div class="admin-warning">Для опасных действий требуется пароль: <span style="color:#ff6b4a; font-weight:600;">horizon2026</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">HORIZON · v9.2 · Кейсы с фото</div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  SUPABASE
+        // ============================================================
+        const SUPABASE_URL = 'https://vsavunuhtigqjhnsagqa.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_O-kJHu6vHE_SB_tugQ3ddQ_003DrW2s';
+
+        // ============================================================
+        //  КОНФИГ
+        // ============================================================
+        const OWNER_NAME = 'tester';
+        const RENAME_COST = 500;
+
+        let SHOP_ITEMS = [
+            { id: 'clickPower', label: '💪 Сила клика', desc: '+1 за клик', baseCost: 30, costMultiplier: 1.5,
+                maxLevel: 99, effect: (l) => ({ clickBonus: l * 1 }) },
+            { id: 'autoClicker', label: '🤖 Автокликер', desc: '+0.5 кликов/сек', baseCost: 80, costMultiplier: 1.7,
+                maxLevel: 50, effect: (l) => ({ passiveIncome: l * 0.5 }) },
+            { id: 'passiveMulti', label: '📈 Пассивный бонус', desc: '+20% к пассивному доходу', baseCost: 150,
+                costMultiplier: 2.0, maxLevel: 30, effect: (l) => ({ passiveMult: 1 + l * 0.20 }) },
+            { id: 'clickMulti', label: '🔥 Множитель клика', desc: '+15% к силе клика', baseCost: 200, costMultiplier: 2.2,
+                maxLevel: 25, effect: (l) => ({ clickMult: 1 + l * 0.15 }) }
+        ];
+
+        let state = { score: 0, totalClicks: 0, levels: {} };
+        SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+
+        let playerName = '';
+        let lastAutoSaveScore = 0;
+        let isMaintenanceCache = false;
+        let maintenanceMessageCache = '';
+        let caseHistory = [];
+
+        // ============================================================
+        //  КОНФИГ КЕЙСОВ (с фото)
+        // ============================================================
+        const CASE_TYPES = [{
+            id: 'common',
+            name: 'Обычный кейс',
+            image: 'https://i.postimg.cc/50XVfhFf/Brawl-Box.webp',
+            price: 100,
+            rarity: 'common',
+            rewards: [
+                { type: 'coins', min: 50, max: 200, chance: 0.7 },
+                { type: 'coins', min: 250, max: 500, chance: 0.3 }
+            ]
+        }, {
+            id: 'rare',
+            name: 'Редкий кейс',
+            icon: '🔥',
+            price: 300,
+            rarity: 'rare',
+            rewards: [
+                { type: 'coins', min: 150, max: 500, chance: 0.6 },
+                { type: 'coins', min: 600, max: 1000, chance: 0.3 },
+                { type: 'upgrade', item: 'clickPower', amount: 1, chance: 0.1 }
+            ]
+        }, {
+            id: 'legendary',
+            name: 'Легендарный кейс',
+            icon: '👑',
+            price: 1000,
+            rarity: 'legendary',
+            rewards: [
+                { type: 'coins', min: 500, max: 1500, chance: 0.5 },
+                { type: 'coins', min: 1500, max: 3000, chance: 0.3 },
+                { type: 'upgrade', item: 'clickPower', amount: 3, chance: 0.15 },
+                { type: 'upgrade', item: 'autoClicker', amount: 2, chance: 0.05 }
+            ]
+        }];
+
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const registerOverlay = document.getElementById('registerOverlay');
+        const registerInput = document.getElementById('registerInput');
+        const registerBtn = document.getElementById('registerBtn');
+        const registerError = document.getElementById('registerError');
+        const playerNameDisplay = document.getElementById('playerNameDisplay');
+
+        const scoreEl = document.getElementById('scoreDisplay');
+        const shopScoreEl = document.getElementById('shopScoreDisplay');
+        const promoScoreEl = document.getElementById('promoScoreDisplay');
+        const profileScoreEl = document.getElementById('profileScoreDisplay');
+        const caseScoreEl = document.getElementById('caseScoreDisplay');
+        const perSecEl = document.getElementById('perSecDisplay');
+        const shopPerSecEl = document.getElementById('shopPerSec');
+        const promoPerSecEl = document.getElementById('promoPerSec');
+        const profilePerSecEl = document.getElementById('profilePerSec');
+        const casePerSecEl = document.getElementById('casePerSec');
+        const totalClicksEl = document.getElementById('totalClicksDisplay');
+        const clickPowerEl = document.getElementById('clickPowerDisplay');
+        const clickBtn = document.getElementById('clickBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shopContainer = document.getElementById('shopContainer');
+        const leaderboardContainer = document.getElementById('leaderboardContainer');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+        const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
+
+        const announcementBanner = document.getElementById('announcementBanner');
+        const announcementText = document.getElementById('announcementText');
+        const closeAnnounce = document.getElementById('closeAnnounce');
+
+        const maintenanceBanner = document.getElementById('maintenanceBanner');
+        const maintenanceText = document.getElementById('maintenanceText');
+        const closeMaintenance = document.getElementById('closeMaintenance');
+
+        const promoInput = document.getElementById('promoInput');
+        const promoActivateBtn = document.getElementById('promoActivateBtn');
+        const promoMessage = document.getElementById('promoMessage');
+
+        const casesGrid = document.getElementById('casesGrid');
+        const caseResult = document.getElementById('caseResult');
+        const caseHistoryEl = document.getElementById('caseHistory');
+
+        const tabButtons = document.getElementById('tabButtons');
+        let adminUnlocked = false;
+
+        const adminTrigger = document.getElementById('secretAdminTrigger');
+        const adminTriggerBtn = document.getElementById('secretAdminTriggerBtn');
+
+        let adminClicks = 0;
+        let adminTimer = null;
+
+        // ============================================================
+        //  ЗВУКИ
+        // ============================================================
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playClickSound(volume = 0.2) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(800 + Math.random() * 400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.07);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.07);
+
+                const bufferSize = audioCtx.sampleRate * 0.015;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.2;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.1 * volume, audioCtx.currentTime);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015);
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start(audioCtx.currentTime);
+                noise.stop(audioCtx.currentTime + 0.015);
+            } catch (e) {}
+        }
+
+        function playWinSound() {
+            try {
+                initAudio();
+                const notes = [523, 587, 659, 784, 880];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.1);
+                    osc.start(audioCtx.currentTime + i * 0.12);
+                    osc.stop(audioCtx.currentTime + i * 0.12 + 0.1);
+                });
+            } catch (e) {}
+        }
+
+        function playLoseSound() {
+            try {
+                initAudio();
+                const notes = [440, 349, 294];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.2 + 0.15);
+                    osc.start(audioCtx.currentTime + i * 0.2);
+                    osc.stop(audioCtx.currentTime + i * 0.2 + 0.15);
+                });
+            } catch (e) {}
+        }
+
+        // ============================================================
+        //  ЧАСТИЦЫ
+        // ============================================================
+        function spawnParticles(x, y, count = 6) {
+            const container = document.getElementById('particleContainer');
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#ffd93d', '#6bcb77'];
+
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 100;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 20;
+
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+
+                const val = Math.floor(Math.random() * 3) + 1;
+                particle.textContent = '+' + val;
+                particle.style.fontSize = (1.0 + Math.random() * 0.6) + 'rem';
+                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = (x + (Math.random() - 0.5) * 16) + 'px';
+                particle.style.top = (y + (Math.random() - 0.5) * 16) + 'px';
+                particle.style.textShadow = `0 0 20px ${colors[Math.floor(Math.random() * colors.length)]}40`;
+
+                particle.style.animationDelay = (Math.random() * 0.1) + 's';
+                particle.style.animationDuration = (0.6 + Math.random() * 0.3) + 's';
+
+                container.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, 1200);
+            }
+        }
+
+        function spawnVictoryParticles(x, y) {
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    spawnParticles(x + (Math.random() - 0.5) * 100, y + (Math.random() - 0.5) * 100, 8);
+                }, i * 50);
+            }
+        }
+
+        // ============================================================
+        //  АДМИН-ТРИГГЕР
+        // ============================================================
+        function handleAdminTrigger(e) {
+            e.stopPropagation();
+            adminClicks++;
+            clearTimeout(adminTimer);
+            adminTimer = setTimeout(() => { adminClicks = 0; }, 1000);
+            if (adminClicks >= 5) {
+                adminClicks = 0;
+                if (playerName === OWNER_NAME) {
+                    unlockAdmin();
+                } else {
+                    alert('⛔ Доступ только для владельца: tester');
+                }
+            }
+        }
+
+        adminTrigger.addEventListener('click', handleAdminTrigger);
+        adminTriggerBtn.addEventListener('click', handleAdminTrigger);
+
+        function unlockAdmin() {
+            if (adminUnlocked) return;
+            adminUnlocked = true;
+            const adminTab = document.createElement('button');
+            adminTab.className = 'tab-btn admin-tab';
+            adminTab.dataset.tab = 'admin';
+            adminTab.textContent = '🔐 Админ';
+            tabButtons.appendChild(adminTab);
+            adminTab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                adminTab.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('tab-admin').classList.add('active');
+                updateAdminStats();
+                updateMaintenanceUI();
+            });
+            const notify = document.createElement('div');
+            notify.style.cssText =
+                'background:#1a2d4a; border:1px solid #ff8a6a; border-radius:1rem; padding:0.4rem 1rem; margin-bottom:0.5rem; color:#ffb09a; font-size:0.8rem; text-align:center;';
+            notify.textContent = '🔐 Админ-панель разблокирована!';
+            document.getElementById('app').insertBefore(notify, document.querySelector('.tab-content'));
+            setTimeout(() => { notify.style.display = 'none'; }, 3000);
+            console.log('🔐 Админ-панель активирована владельцем tester');
+        }
+
+        // ============================================================
+        //  РЕГИСТРАЦИЯ
+        // ============================================================
+        async function isNickTaken(name) {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=name`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const data = await res.json();
+                return data && data.length > 0;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function loadPlayerName() {
+            try {
+                const saved = localStorage.getItem('horizonPlayerName');
+                if (saved && saved.trim()) {
+                    playerName = saved.trim();
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        function savePlayerName(name) {
+            try {
+                localStorage.setItem('horizonPlayerName', name.trim());
+            } catch (e) {}
+        }
+
+        function hideRegister() {
+            registerOverlay.classList.add('hidden');
+            if (playerName === OWNER_NAME) {
+                playerNameDisplay.innerHTML = `<span class="owner-glow">${playerName} 👑</span>`;
+            } else {
+                playerNameDisplay.innerHTML = `<span class="glow-text">${playerName}</span>`;
+            }
+        }
+
+        function showRegister() {
+            registerOverlay.classList.remove('hidden');
+            registerInput.value = '';
+            registerError.textContent = '';
+            setTimeout(() => registerInput.focus(), 100);
+        }
+
+        async function handleRegister() {
+            const name = registerInput.value.trim();
+            if (name.length < 2) {
+                registerError.textContent = '❌ Минимум 2 символа';
+                return;
+            }
+            if (name.length > 20) {
+                registerError.textContent = '❌ Максимум 20 символов';
+                return;
+            }
+            if (!/^[a-zA-Z0-9_а-яА-Я\-]+$/.test(name)) {
+                registerError.textContent = '❌ Только буквы, цифры, _ и -';
+                return;
+            }
+
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                playerName = name;
+                savePlayerName(name);
+                hideRegister();
+                renderLeaderboard();
+                loadAnnouncement();
+                updateBanUI();
+                loadProfile(playerName);
+                updateMaintenanceUI();
+                return;
+            }
+
+            const taken = await isNickTaken(name);
+            if (taken) {
+                registerError.textContent = '❌ Этот ник уже занят!';
+                return;
+            }
+
+            playerName = name;
+            savePlayerName(name);
+            hideRegister();
+            renderLeaderboard();
+            loadAnnouncement();
+            updateBanUI();
+            loadProfile(playerName);
+            updateMaintenanceUI();
+        }
+
+        registerBtn.addEventListener('click', handleRegister);
+        registerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleRegister();
+        });
+
+        // ============================================================
+        //  ГЛОБАЛЬНЫЙ БАН
+        // ============================================================
+        async function fetchBannedList() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned?select=name`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки банов');
+                const data = await res.json();
+                return data.map(item => item.name);
+            } catch (e) {
+                console.warn('Не удалось загрузить бан-лист:', e);
+                return [];
+            }
+        }
+
+        async function addBan(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                });
+                return res.ok;
+            } catch (e) {
+                console.warn('Ошибка добавления бана:', e);
+                return false;
+            }
+        }
+
+        async function removeBan(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned?name=eq.${encodeURIComponent(name)}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                return res.ok;
+            } catch (e) {
+                console.warn('Ошибка снятия бана:', e);
+                return false;
+            }
+        }
+
+        async function isBanned(name) {
+            if (!name) return false;
+            const list = await fetchBannedList();
+            return list.some(b => b.toLowerCase() === name.toLowerCase());
+        }
+
+        async function updateBanUI() {
+            if (!playerName) return;
+            const banned = await isBanned(playerName);
+            if (banned) {
+                clickBtn.classList.add('banned');
+                clickBtn.textContent = '⛔ ЗАБАНЕН';
+                clickBtn.disabled = true;
+            } else {
+                clickBtn.classList.remove('banned');
+                clickBtn.textContent = 'КЛИК';
+                clickBtn.disabled = false;
+            }
+        }
+
+        // ============================================================
+        //  ОБЪЯВЛЕНИЯ
+        // ============================================================
+        function getLastShownAnnouncementId() {
+            try {
+                return localStorage.getItem('horizonLastAnnounceId') || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setLastShownAnnouncementId(id) {
+            try {
+                localStorage.setItem('horizonLastAnnounceId', id);
+            } catch (e) {}
+        }
+
+        async function saveAnnouncementToSupabase(text) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/announcements`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
+                });
+                return res.ok;
+            } catch (e) {
+                console.warn('Ошибка сохранения объявления:', e);
+                return false;
+            }
+        }
+
+        async function fetchAnnouncement() {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/announcements?select=id,text&order=created_at.desc&limit=1`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return { id: data[0].id, text: data[0].text };
+                }
+                return null;
+            } catch (e) {
+                console.warn('Не удалось загрузить объявление:', e);
+                return null;
+            }
+        }
+
+        async function loadAnnouncement() {
+            const data = await fetchAnnouncement();
+            if (!data || !data.text || !data.text.trim()) {
+                announcementBanner.style.display = 'none';
+                return;
+            }
+
+            const lastShownId = getLastShownAnnouncementId();
+
+            if (lastShownId !== String(data.id)) {
+                announcementText.textContent = data.text.trim();
+                announcementBanner.style.display = 'block';
+                setLastShownAnnouncementId(String(data.id));
+            } else {
+                announcementBanner.style.display = 'none';
+            }
+        }
+
+        closeAnnounce.addEventListener('click', () => {
+            announcementBanner.style.display = 'none';
+            fetchAnnouncement().then(data => {
+                if (data) {
+                    setLastShownAnnouncementId(String(data.id));
+                }
+            });
+        });
+
+        // ============================================================
+        //  ТЕХНИЧЕСКИЙ ПЕРЕРЫВ
+        // ============================================================
+        async function getMaintenanceStatus() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?select=*&limit=1`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return { enabled: data[0].enabled, message: data[0].message };
+                }
+                return { enabled: false, message: '🛠️ Технические работы. Скоро вернёмся!' };
+            } catch (e) {
+                console.warn('Не удалось загрузить статус перерыва:', e);
+                return { enabled: false, message: '🛠️ Технические работы. Скоро вернёмся!' };
+            }
+        }
+
+        async function setMaintenanceStatus(enabled, message) {
+            try {
+                const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?select=id&limit=1`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const existing = await checkRes.json();
+
+                if (existing && existing.length > 0) {
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?id=eq.${existing[0].id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ enabled, message, updated_at: new Date().toISOString() })
+                    });
+                    return updateRes.ok;
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ enabled, message })
+                    });
+                    return insertRes.ok;
+                }
+            } catch (e) {
+                console.warn('Ошибка обновления статуса перерыва:', e);
+                return false;
+            }
+        }
+
+        async function updateMaintenanceUI() {
+            const status = await getMaintenanceStatus();
+            isMaintenanceCache = status.enabled;
+            maintenanceMessageCache = status.message;
+
+            if (status.enabled) {
+                maintenanceText.textContent = status.message;
+                maintenanceBanner.style.display = 'block';
+                clickBtn.classList.add('maintenance-mode');
+                clickBtn.textContent = '⛔ ПЕРЕРЫВ';
+                clickBtn.disabled = true;
+            } else {
+                maintenanceBanner.style.display = 'none';
+                clickBtn.classList.remove('maintenance-mode');
+                if (!clickBtn.classList.contains('banned')) {
+                    clickBtn.textContent = 'КЛИК';
+                    clickBtn.disabled = false;
+                }
+                updateBanUI();
+            }
+
+            const statusEl = document.getElementById('adminMaintenanceStatus');
+            if (statusEl) {
+                statusEl.textContent = status.enabled ? '⏸ Перерыв ВКЛЮЧЁН' : '▶️ Перерыв ВЫКЛЮЧЕН';
+                statusEl.style.color = status.enabled ? '#ff6b6b' : '#6bcb77';
+            }
+        }
+
+        closeMaintenance.addEventListener('click', () => {
+            maintenanceBanner.style.display = 'none';
+        });
+
+        document.getElementById('adminMaintenanceEnable').addEventListener('click', async () => {
+            const message = document.getElementById('adminMaintenanceMessage').value.trim() || '🛠️ Технические работы. Скоро вернёмся!';
+            const success = await setMaintenanceStatus(true, message);
+            if (success) {
+                alert('✅ Технический перерыв ВКЛЮЧЁН');
+                updateMaintenanceUI();
+            } else {
+                alert('❌ Ошибка включения перерыва');
+            }
+        });
+
+        document.getElementById('adminMaintenanceDisable').addEventListener('click', async () => {
+            const success = await setMaintenanceStatus(false, '');
+            if (success) {
+                alert('✅ Технический перерыв ВЫКЛЮЧЕН');
+                updateMaintenanceUI();
+            } else {
+                alert('❌ Ошибка выключения перерыва');
+            }
+        });
+
+        // ============================================================
+        //  УПРАВЛЕНИЕ АДМИНАМИ
+        // ============================================================
+        async function fetchAdminLevel(name) {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/admins?name=eq.${encodeURIComponent(name)}&select=level`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return data[0].level;
+                }
+                return 0;
+            } catch (e) {
+                console.warn('Не удалось загрузить уровень админа:', e);
+                return 0;
+            }
+        }
+
+        async function fetchAllAdmins() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/admins?select=name,level`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                return await res.json();
+            } catch (e) {
+                console.warn('Не удалось загрузить админов:', e);
+                return [];
+            }
+        }
+
+        async function setAdminLevel(name, level) {
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/admins?name=eq.${encodeURIComponent(name)}&select=id`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const existing = await checkRes.json();
+
+                if (level === 0) {
+                    if (existing && existing.length > 0) {
+                        const deleteRes = await fetch(`${SUPABASE_URL}/rest/v1/admins?id=eq.${existing[0].id}`, {
+                            method: 'DELETE',
+                            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                        });
+                        return deleteRes.ok;
+                    }
+                    return true;
+                }
+
+                if (existing && existing.length > 0) {
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/admins?id=eq.${existing[0].id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ level })
+                    });
+                    return updateRes.ok;
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/admins`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, level })
+                    });
+                    return insertRes.ok;
+                }
+            } catch (e) {
+                console.warn('Ошибка управления админами:', e);
+                return false;
+            }
+        }
+
+        document.getElementById('adminSetAdmin').addEventListener('click', async () => {
+            const name = document.getElementById('adminAdminName').value.trim();
+            const level = parseInt(document.getElementById('adminAdminLevel').value);
+            const resultEl = document.getElementById('adminAdminResult');
+
+            if (!name) {
+                resultEl.textContent = '❌ Введите ник игрока';
+                resultEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                resultEl.textContent = '❌ Владелец всегда имеет полный доступ';
+                resultEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            const success = await setAdminLevel(name, level);
+            if (success) {
+                const levelText = level === 0 ? 'снята' : `lvl ${level} назначена`;
+                resultEl.textContent = `✅ Админка ${levelText} для ${name}`;
+                resultEl.style.color = '#6bcb77';
+                renderLeaderboard();
+                if (name === playerName) {
+                    loadProfile(playerName);
+                }
+            } else {
+                resultEl.textContent = '❌ Ошибка назначения админки';
+                resultEl.style.color = '#ff6b6b';
+            }
+        });
+
+        // ============================================================
+        //  ПРОМОКОДЫ
+        // ============================================================
+        async function activatePromo(code) {
+            promoMessage.textContent = '⏳ Проверка...';
+            promoMessage.className = 'promo-message';
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/promocodes?code=eq.${encodeURIComponent(code.toUpperCase())}&select=id,reward,used`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка проверки');
+                const data = await checkRes.json();
+
+                if (!data || data.length === 0) {
+                    promoMessage.textContent = '❌ Промокод не найден!';
+                    promoMessage.className = 'promo-message error';
+                    return;
+                }
+
+                const promo = data[0];
+                if (promo.used) {
+                    promoMessage.textContent = '❌ Этот промокод уже использован!';
+                    promoMessage.className = 'promo-message error';
+                    return;
+                }
+
+                const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/promocodes?id=eq.${promo.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ used: true })
+                });
+                if (!updateRes.ok) throw new Error('Ошибка активации');
+
+                state.score += promo.reward;
+                render();
+
+                promoMessage.textContent = `✅ Промокод активирован! +${promo.reward} монет! 🎉`;
+                promoMessage.className = 'promo-message success';
+                promoInput.value = '';
+
+            } catch (e) {
+                console.warn('Ошибка активации промокода:', e);
+                promoMessage.textContent = '❌ Ошибка активации. Попробуйте позже.';
+                promoMessage.className = 'promo-message error';
+            }
+        }
+
+        promoActivateBtn.addEventListener('click', () => {
+            const code = promoInput.value.trim();
+            if (!code) {
+                promoMessage.textContent = '❌ Введите код промокода!';
+                promoMessage.className = 'promo-message error';
+                return;
+            }
+            if (!playerName) {
+                promoMessage.textContent = '❌ Сначала войдите в игру!';
+                promoMessage.className = 'promo-message error';
+                return;
+            }
+            activatePromo(code);
+        });
+
+        promoInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                promoActivateBtn.click();
+            }
+        });
+
+        // ============================================================
+        //  АДМИН: СОЗДАНИЕ ПРОМОКОДА
+        // ============================================================
+        document.getElementById('adminCreatePromo').addEventListener('click', async () => {
+            const code = document.getElementById('adminPromoCode').value.trim().toUpperCase();
+            const reward = parseInt(document.getElementById('adminPromoReward').value);
+            const resultEl = document.getElementById('adminPromoResult');
+
+            if (!code) {
+                resultEl.textContent = '❌ Введите код';
+                resultEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (code.length < 3) {
+                resultEl.textContent = '❌ Код должен быть минимум 3 символа';
+                resultEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (!reward || reward < 1) {
+                resultEl.textContent = '❌ Введите награду (минимум 1)';
+                resultEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/promocodes`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code, reward, used: false })
+                });
+
+                if (res.status === 409) {
+                    resultEl.textContent = '❌ Промокод с таким кодом уже существует!';
+                    resultEl.style.color = '#ff6b6b';
+                    return;
+                }
+
+                if (!res.ok) throw new Error('Ошибка создания');
+
+                resultEl.textContent = `✅ Промокод "${code}" создан! Награда: ${reward} монет`;
+                resultEl.style.color = '#6bcb77';
+                document.getElementById('adminPromoCode').value = '';
+                document.getElementById('adminPromoReward').value = '100';
+
+            } catch (e) {
+                console.warn('Ошибка создания промокода:', e);
+                resultEl.textContent = '❌ Ошибка создания промокода';
+                resultEl.style.color = '#ff6b6b';
+            }
+        });
+
+        // ============================================================
+        //  ПЕРЕИМЕНОВАНИЕ НИКА
+        // ============================================================
+        async function renamePlayer(newName) {
+            if (!playerName) return false;
+            if (newName.length < 2 || newName.length > 20) {
+                alert('❌ Ник должен быть от 2 до 20 символов');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9_а-яА-Я\-]+$/.test(newName)) {
+                alert('❌ Только буквы, цифры, _ и -');
+                return false;
+            }
+            if (newName.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                alert('❌ Этот ник зарезервирован для владельца!');
+                return false;
+            }
+            if (newName.toLowerCase() === playerName.toLowerCase()) {
+                alert('ℹ️ Это ваш текущий ник');
+                return false;
+            }
+            if (await isBanned(playerName)) {
+                alert('⛔ Забаненные игроки не могут менять ник!');
+                return false;
+            }
+
+            const taken = await isNickTaken(newName);
+            if (taken) {
+                alert('❌ Этот ник уже занят!');
+                return false;
+            }
+
+            if (state.score < RENAME_COST) {
+                alert(`❌ Недостаточно монет! Нужно ${RENAME_COST}`);
+                return false;
+            }
+
+            state.score -= RENAME_COST;
+            render();
+
+            const oldName = playerName;
+            playerName = newName;
+            savePlayerName(newName);
+
+            if (newName === OWNER_NAME) {
+                playerNameDisplay.innerHTML = `<span class="owner-glow">${newName} 👑</span>`;
+            } else {
+                playerNameDisplay.innerHTML = `<span class="glow-text">${newName}</span>`;
+            }
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(oldName)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const existing = await checkRes.json();
+                if (existing && existing.length > 0) {
+                    const id = existing[0].id;
+                    await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: newName })
+                    });
+                }
+            } catch (e) {
+                console.warn('Не удалось обновить ник в Supabase:', e);
+            }
+
+            alert(`✅ Ник успешно изменён на "${newName}" за ${RENAME_COST} монет!`);
+            renderLeaderboard();
+            updateBanUI();
+            loadProfile(playerName);
+            return true;
+        }
+
+        // ============================================================
+        //  КЕЙСЫ
+        // ============================================================
+        function openCase(caseType) {
+            if (state.score < caseType.price) {
+                alert(`❌ Недостаточно монет! Нужно ${caseType.price}, у вас ${Math.floor(state.score)}`);
+                return;
+            }
+
+            state.score -= caseType.price;
+            render();
+
+            const rand = Math.random();
+            let reward = caseType.rewards[0];
+            let cumulative = 0;
+            for (const r of caseType.rewards) {
+                cumulative += r.chance;
+                if (rand <= cumulative) {
+                    reward = r;
+                    break;
+                }
+            }
+
+            let rewardText = '';
+            let rewardClass = 'rarity-common';
+            let rewardValue = 0;
+
+            if (reward.type === 'coins') {
+                const amount = Math.floor(Math.random() * (reward.max - reward.min + 1)) + reward.min;
+                state.score += amount;
+                rewardText = `🪙 +${amount} монет!`;
+                rewardValue = amount;
+                if (amount >= 1000) rewardClass = 'rarity-legendary';
+                else if (amount >= 500) rewardClass = 'rarity-epic';
+                else if (amount >= 200) rewardClass = 'rarity-rare';
+            } else if (reward.type === 'upgrade') {
+                const item = reward.item;
+                const amount = reward.amount || 1;
+                if (state.levels[item] !== undefined) {
+                    state.levels[item] += amount;
+                }
+                const itemLabels = { clickPower: 'Сила клика', autoClicker: 'Автокликер', passiveMulti: 'Пассивный бонус',
+                    clickMulti: 'Множитель клика' };
+                rewardText = `⬆️ ${itemLabels[item] || item} +${amount}!`;
+                rewardClass = 'rarity-legendary';
+                rewardValue = amount;
+            }
+
+            render();
+
+            caseResult.className = 'case-result show';
+            caseResult.innerHTML = `
+                <div class="big-reward ${rewardClass}">${rewardText}</div>
+                <div style="font-size:0.8rem; color:#7a8fc9; margin-top:0.2rem;">${caseType.name}</div>
+            `;
+
+            caseHistory.unshift({ caseName: caseType.name, reward: rewardText, rarity: rewardClass });
+            if (caseHistory.length > 20) caseHistory.pop();
+            renderCaseHistory();
+
+            setTimeout(() => {
+                caseResult.className = 'case-result';
+            }, 3000);
+        }
+
+        function renderCaseHistory() {
+            if (caseHistory.length === 0) {
+                caseHistoryEl.innerHTML =
+                    `<div style="color:#5a6f9a; text-align:center; font-size:0.75rem; padding:0.3rem;">История открытий</div>`;
+                return;
+            }
+            let html = '';
+            caseHistory.forEach((item) => {
+                const cls = item.rarity || 'item-common';
+                html += `
+                    <div class="case-history-item">
+                        <span class="item-name ${cls}">${item.reward}</span>
+                        <span style="color:#5a6f9a;">${item.caseName}</span>
+                    </div>
+                `;
+            });
+            caseHistoryEl.innerHTML = html;
+        }
+
+        function renderCases() {
+            casesGrid.innerHTML = '';
+            CASE_TYPES.forEach((caseType) => {
+                const card = document.createElement('div');
+                card.className = `case-card ${caseType.rarity}`;
+
+                let imageHtml = '';
+                if (caseType.image) {
+                    imageHtml = `<img src="${caseType.image}" alt="${caseType.name}" class="case-image" loading="lazy">`;
+                } else if (caseType.icon) {
+                    imageHtml =
+                        `<div class="case-icon" style="font-size:3rem; position:relative; z-index:1;">${caseType.icon}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="case-glow"></div>
+                    ${imageHtml}
+                    <div class="case-name">${caseType.name}</div>
+                    <div class="case-price">💰 ${caseType.price} монет</div>
+                    <button class="case-btn" data-id="${caseType.id}">🔓 Открыть</button>
+                `;
+                casesGrid.appendChild(card);
+
+                const btn = card.querySelector('.case-btn');
+                btn.addEventListener('click', () => openCase(caseType));
+            });
+        }
+
+        // ============================================================
+        //  ВКЛАДКИ
+        // ============================================================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                const target = document.getElementById('tab-' + tab);
+                if (target) target.classList.add('active');
+                if (tab === 'leaderboard') renderLeaderboard();
+                if (tab === 'shop') renderShop();
+                if (tab === 'admin') {
+                    updateAdminStats();
+                    updateMaintenanceUI();
+                }
+                if (tab === 'promo') {
+                    promoScoreEl.textContent = Math.floor(state.score);
+                    promoPerSecEl.textContent = perSecEl.textContent;
+                }
+                if (tab === 'profile') {
+                    profileScoreEl.textContent = Math.floor(state.score);
+                    profilePerSecEl.textContent = perSecEl.textContent;
+                    if (playerName) {
+                        const content = document.getElementById('profileContent');
+                        if (!content.querySelector('.profile-grid') && !content.querySelector('.profile-not-found')) {
+                            loadProfile(playerName);
+                        }
+                    }
+                }
+                if (tab === 'cases') {
+                    caseScoreEl.textContent = Math.floor(state.score);
+                    casePerSecEl.textContent = perSecEl.textContent;
+                }
+            });
+        });
+
+        // ============================================================
+        //  ВСПОМОГАТЕЛЬНЫЕ
+        // ============================================================
+        function getCost(item, level) {
+            return Math.floor(item.baseCost * Math.pow(item.costMultiplier, level));
+        }
+
+        function computeEffects() {
+            let clickBonus = 1,
+                passiveIncome = 0,
+                passiveMult = 1,
+                clickMult = 1;
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const eff = item.effect(lv);
+                if (eff.clickBonus !== undefined) clickBonus += eff.clickBonus;
+                if (eff.passiveIncome !== undefined) passiveIncome += eff.passiveIncome;
+                if (eff.passiveMult !== undefined) passiveMult = eff.passiveMult;
+                if (eff.clickMult !== undefined) clickMult = eff.clickMult;
+            });
+            return { finalClickPower: clickBonus * clickMult, finalPassive: passiveIncome * passiveMult };
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  РЕНДЕР
+        // ============================================================
+        function render() {
+            const eff = computeEffects();
+            const score = Math.floor(state.score);
+            scoreEl.textContent = score;
+            shopScoreEl.textContent = score;
+            promoScoreEl.textContent = score;
+            profileScoreEl.textContent = score;
+            caseScoreEl.textContent = score;
+            perSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            shopPerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            promoPerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            profilePerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            casePerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            totalClicksEl.textContent = state.totalClicks;
+            clickPowerEl.textContent = eff.finalClickPower.toFixed(1);
+            renderShop();
+            saveState();
+        }
+
+        // ============================================================
+        //  МАГАЗИН
+        // ============================================================
+        function renderShop() {
+            shopContainer.innerHTML = '';
+
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const cost = getCost(item, lv);
+                const maxed = lv >= item.maxLevel;
+                const canAfford = state.score >= cost && !maxed;
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                card.innerHTML = `
+                    <div class="title"><span>${item.label}</span><span class="level">ур. ${lv}</span></div>
+                    <div class="desc">${item.desc}</div>
+                    <div class="price-row">
+                        <span class="price">🪙 ${cost}</span>
+                        <button class="buy-btn" ${!canAfford ? 'disabled' : ''}>${maxed ? 'MAX' : 'Купить'}</button>
+                    </div>
+                `;
+                shopContainer.appendChild(card);
+                const btn = card.querySelector('.buy-btn');
+                if (!maxed) {
+                    btn.addEventListener('click', () => purchaseItem(item.id));
+                }
+            });
+
+            const renameCard = document.createElement('div');
+            renameCard.className = 'shop-card rename-card';
+            renameCard.innerHTML = `
+                <div class="title"><span>✏️ Сменить ник</span></div>
+                <div class="desc">Новый ник (2-20 символов)</div>
+                <div class="price-row">
+                    <span class="price">🪙 ${RENAME_COST}</span>
+                    <button class="buy-btn" id="renameBtn">Сменить</button>
+                </div>
+            `;
+            shopContainer.appendChild(renameCard);
+
+            renameCard.querySelector('#renameBtn').addEventListener('click', () => {
+                const newName = prompt('Введите новый ник (2-20 символов):');
+                if (newName !== null) {
+                    renamePlayer(newName.trim());
+                }
+            });
+        }
+
+        async function purchaseItem(id) {
+            if (await isBanned(playerName)) {
+                alert('⛔ Забаненные игроки не могут покупать улучшения!');
+                return;
+            }
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+            const lv = state.levels[id] || 0;
+            if (lv >= item.maxLevel) return;
+            const cost = getCost(item, lv);
+            if (state.score < cost) return;
+            state.score -= cost;
+            state.levels[id] = lv + 1;
+            render();
+        }
+
+        // ============================================================
+        //  SUPABASE — ЛИДЕРБОРД
+        // ============================================================
+        async function fetchLeaderboard() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                return await res.json();
+            } catch (e) {
+                console.warn('Не удалось загрузить лидерборд:', e);
+                return null;
+            }
+        }
+
+        async function addOrUpdateScore(name, score) {
+            if (await isBanned(name)) {
+                return false;
+            }
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка проверки');
+                const existing = await checkRes.json();
+
+                if (existing && existing.length > 0) {
+                    const currentScore = existing[0].score;
+                    if (score <= currentScore) {
+                        return false;
+                    }
+                    const id = existing[0].id;
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ score })
+                    });
+                    if (!updateRes.ok) throw new Error('Ошибка обновления');
+                    return true;
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, score })
+                    });
+                    if (!insertRes.ok) throw new Error('Ошибка сохранения');
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Ошибка при сохранении/обновлении:', e);
+                return false;
+            }
+        }
+
+        async function deletePlayerFromLeaderboard(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка удаления');
+                return true;
+            } catch (e) {
+                console.warn('Не удалось удалить игрока:', e);
+                return false;
+            }
+        }
+
+        async function clearLeaderboard() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?score=gte.0`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка очистки');
+                return true;
+            } catch (e) {
+                console.warn('Не удалось очистить лидерборд:', e);
+                return false;
+            }
+        }
+
+        async function renderLeaderboard() {
+            const data = await fetchLeaderboard();
+            if (!data || data.length === 0) {
+                leaderboardContainer.innerHTML = `<div class="lb-empty">🏆 Пока нет записей. Стань первым!</div>`;
+                return;
+            }
+            const bannedList = await fetchBannedList();
+            const adminList = await fetchAllAdmins();
+            let html = '';
+            data.forEach((entry, index) => {
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                const isMe = entry.name.toLowerCase() === playerName.toLowerCase();
+                const isBannedUser = bannedList.some(b => b.toLowerCase() === entry.name.toLowerCase());
+                const adminLevel = adminList.find(a => a.name === entry.name)?.level || 0;
+
+                let nameDisplay;
+                if (isMe) {
+                    if (entry.name === OWNER_NAME) {
+                        nameDisplay = `<span class="owner-glow">${escapeHtml(entry.name)} 👑</span>`;
+                    } else {
+                        nameDisplay = `<span class="glow-text">${escapeHtml(entry.name)} ⭐</span>`;
+                    }
+                } else {
+                    nameDisplay = escapeHtml(entry.name);
+                }
+
+                let adminBadge = '';
+                if (adminLevel > 0) {
+                    adminBadge = ` 🛡️${adminLevel}`;
+                }
+
+                html += `
+                    <div class="lb-entry ${isMe ? 'me' : ''}" style="${isBannedUser ? 'opacity:0.5; border-color:#6a313a;' : ''}">
+                        <span class="rank">${medal}</span>
+                        <span class="name">${nameDisplay}${adminBadge} ${isBannedUser ? '⛔' : ''}</span>
+                        <span class="lb-score">🪙 ${Math.floor(entry.score)}</span>
+                    </div>
+                `;
+            });
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // ============================================================
+        //  ПРОФИЛЬ
+        // ============================================================
+        async function fetchPlayerProfile(nick) {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(nick)}&select=*`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return data[0];
+                }
+                return null;
+            } catch (e) {
+                console.warn('Не удалось загрузить профиль:', e);
+                return null;
+            }
+        }
+
+        async function renderProfile(player) {
+            const container = document.getElementById('profileContent');
+            if (!player) {
+                container.innerHTML = `<div class="profile-not-found">❌ Игрок не найден</div>`;
+                return;
+            }
+
+            const isMe = player.name === playerName;
+            const isOwner = player.name === OWNER_NAME;
+
+            let adminLevel = 0;
+            if (!isOwner) {
+                adminLevel = await fetchAdminLevel(player.name) || 0;
+            }
+
+            let prefixHtml = '';
+            if (isOwner) {
+                prefixHtml = `<span class="admin-prefix-owner">👑 Владелец</span>`;
+            } else if (adminLevel === 3) {
+                prefixHtml = `<span class="admin-prefix-3">🔥 Админ III</span>`;
+            } else if (adminLevel === 2) {
+                prefixHtml = `<span class="admin-prefix-2">⚡ Админ II</span>`;
+            } else if (adminLevel === 1) {
+                prefixHtml = `<span class="admin-prefix-1">🛡️ Админ I</span>`;
+            } else {
+                prefixHtml = `<span style="color:#7a8fc9;">Игрок</span>`;
+            }
+
+            let levelsHtml = '';
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                levelsHtml += `
+                    <div class="stat-line">${item.label}: <span>ур. ${lv}</span></div>
+                `;
+            });
+
+            let clickPowerHtml = '';
+            let passiveHtml = '';
+            if (isMe) {
+                const eff = computeEffects();
+                clickPowerHtml = `<div class="stat-line">💥 Сила клика: <span>${eff.finalClickPower.toFixed(1)}</span></div>`;
+                passiveHtml = `<div class="stat-line">📈 Пассивный доход: <span>+${eff.finalPassive.toFixed(1)}/сек</span></div>`;
+            } else {
+                clickPowerHtml = `<div class="stat-line">💥 Сила клика: <span>—</span></div>`;
+                passiveHtml = `<div class="stat-line">📈 Пассивный доход: <span>—</span></div>`;
+            }
+
+            container.innerHTML = `
+                <div class="profile-grid">
+                    <div class="profile-card">
+                        <h3>👤 Основное</h3>
+                        <div class="stat-line">Ник: <span>${escapeHtml(player.name)}</span></div>
+                        <div class="stat-line">Статус: ${prefixHtml}</div>
+                        <div class="stat-line">Создан: <span>${new Date(player.created_at).toLocaleDateString()}</span></div>
+                    </div>
+                    <div class="profile-card">
+                        <h3>📊 Статистика</h3>
+                        <div class="stat-line">🪙 Монет: <span>${Math.floor(player.score)}</span></div>
+                        <div class="stat-line">👆 Всего кликов: <span>${state.totalClicks}</span></div>
+                        ${clickPowerHtml}
+                        ${passiveHtml}
+                    </div>
+                    <div class="profile-card" style="grid-column: 1 / -1;">
+                        <h3>🏆 Прогресс в магазине</h3>
+                        ${levelsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadProfile(nick) {
+            const container = document.getElementById('profileContent');
+            container.innerHTML = '<div style="color:#7a8fc9; text-align:center; padding:1rem;">⏳ Загрузка...</div>';
+
+            const player = await fetchPlayerProfile(nick);
+            if (player) {
+                await renderProfile(player);
+            } else {
+                container.innerHTML = `<div class="profile-not-found">❌ Игрок "${escapeHtml(nick)}" не найден</div>`;
+            }
+        }
+
+        document.getElementById('profileSearchBtn').addEventListener('click', () => {
+            const nick = document.getElementById('profileSearchInput').value.trim();
+            if (!nick) {
+                alert('Введите ник игрока');
+                return;
+            }
+            loadProfile(nick);
+        });
+
+        document.getElementById('profileResetBtn').addEventListener('click', () => {
+            if (playerName) {
+                document.getElementById('profileSearchInput').value = '';
+                loadProfile(playerName);
+            }
+        });
+
+        // ============================================================
+        //  ИГРОВАЯ ЛОГИКА
+        // ============================================================
+        async function handleClick(e) {
+            const maintenanceStatus = await getMaintenanceStatus();
+            if (maintenanceStatus.enabled) {
+                alert(maintenanceStatus.message);
+                return;
+            }
+
+            if (await isBanned(playerName)) {
+                alert('⛔ Вы забанены и не можете кликать!');
+                return;
+            }
+
+            playClickSound(0.2);
+
+            const rect = clickBtn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            spawnParticles(cx, cy, 6);
+
+            const eff = computeEffects();
+            state.score += eff.finalClickPower;
+            state.totalClicks += 1;
+            render();
+
+            clickBtn.style.transform = 'scale(0.90)';
+            setTimeout(() => { clickBtn.style.transform = ''; }, 70);
+        }
+
+        let passiveInterval = null;
+        let autoSaveInterval = null;
+
+        function startPassiveIncome() {
+            if (passiveInterval) clearInterval(passiveInterval);
+            passiveInterval = setInterval(async () => {
+                const maintenanceStatus = await getMaintenanceStatus();
+                if (maintenanceStatus.enabled) return;
+
+                if (await isBanned(playerName)) return;
+                const eff = computeEffects();
+                if (eff.finalPassive > 0) {
+                    state.score += eff.finalPassive;
+                    render();
+                }
+            }, 1000);
+        }
+
+        function startAutoSave() {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(async () => {
+                if (!playerName) return;
+                const maintenanceStatus = await getMaintenanceStatus();
+                if (maintenanceStatus.enabled) return;
+                if (await isBanned(playerName)) return;
+                const currentScore = Math.floor(state.score);
+                if (currentScore < 1) return;
+                if (currentScore === lastAutoSaveScore) return;
+
+                const success = await addOrUpdateScore(playerName, currentScore);
+                if (success) {
+                    lastAutoSaveScore = currentScore;
+                    console.log(`✅ Автосохранение: ${currentScore} очков для ${playerName}`);
+                }
+            }, 10000);
+        }
+
+        // ============================================================
+        //  СОХРАНЕНИЕ / ЗАГРУЗКА
+        // ============================================================
+        function saveState() {
+            try {
+                localStorage.setItem('horizonGameState', JSON.stringify(state));
+                localStorage.setItem('horizonCaseHistory', JSON.stringify(caseHistory));
+            } catch (e) {}
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('horizonGameState');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (typeof parsed.score === 'number' && typeof parsed.totalClicks === 'number' && parsed.levels) {
+                        SHOP_ITEMS.forEach(item => {
+                            if (typeof parsed.levels[item.id] !== 'number') parsed.levels[item.id] = 0;
+                        });
+                        state = parsed;
+                    }
+                }
+                const histRaw = localStorage.getItem('horizonCaseHistory');
+                if (histRaw) {
+                    caseHistory = JSON.parse(histRaw);
+                    if (!Array.isArray(caseHistory)) caseHistory = [];
+                }
+            } catch (e) {}
+        }
+
+        // ============================================================
+        //  АДМИН-ФУНКЦИИ
+        // ============================================================
+        async function updateAdminStats() {
+            try {
+                const data = await fetchLeaderboard();
+                if (data && data.length > 0) {
+                    document.getElementById('adminTotalPlayers').textContent = data.length;
+                    const total = data.reduce((s, e) => s + e.score, 0);
+                    document.getElementById('adminAvgScore').textContent = Math.floor(total / data.length);
+                    document.getElementById('adminTop1').textContent = `${data[0].name} (${Math.floor(data[0].score)})`;
+                } else {
+                    document.getElementById('adminTotalPlayers').textContent = '0';
+                    document.getElementById('adminAvgScore').textContent = '0';
+                    document.getElementById('adminTop1').textContent = '—';
+                }
+            } catch (e) {
+                console.warn('Ошибка обновления статистики:', e);
+            }
+        }
+
+        document.getElementById('adminFindPlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) {
+                document.getElementById('adminPlayerResult').textContent = 'Введите ник';
+                return;
+            }
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const entry = data[0];
+                    const banned = await isBanned(entry.name);
+                    document.getElementById('adminPlayerResult').innerHTML =
+                        `✅ Найден: <strong>${escapeHtml(entry.name)}</strong> — 🪙 ${Math.floor(entry.score)} ${banned ? '⛔ Забанен' : ''}`;
+                } else {
+                    document.getElementById('adminPlayerResult').textContent = '❌ Игрок не найден';
+                }
+            } catch (e) {
+                document.getElementById('adminPlayerResult').textContent = '❌ Ошибка поиска';
+            }
+        });
+
+        document.getElementById('adminDeletePlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { alert('Введите ник'); return; }
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                alert('⛔ Нельзя удалить владельца!');
+                return;
+            }
+            if (!confirm(`Удалить игрока ${name} из лидерборда?`)) return;
+            const success = await deletePlayerFromLeaderboard(name);
+            if (success) {
+                alert(`✅ Игрок ${name} удалён`);
+                document.getElementById('adminPlayerResult').textContent = `✅ Удалён: ${name}`;
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                alert('❌ Ошибка удаления');
+            }
+        });
+
+        document.getElementById('adminBanPlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { alert('Введите ник'); return; }
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                alert('⛔ Нельзя забанить владельца!');
+                return;
+            }
+            if (await isBanned(name)) {
+                alert(`Игрок ${name} уже забанен`);
+                return;
+            }
+            const success = await addBan(name);
+            if (success) {
+                alert(`⛔ ${name} забанен глобально!`);
+                document.getElementById('adminPlayerResult').textContent = `⛔ ${name} забанен`;
+                renderLeaderboard();
+                updateBanUI();
+                updateAdminStats();
+            } else {
+                alert('❌ Ошибка бана');
+            }
+        });
+
+        document.getElementById('adminUnbanPlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { alert('Введите ник'); return; }
+            if (!await isBanned(name)) {
+                alert(`Игрок ${name} не в бане`);
+                return;
+            }
+            const success = await removeBan(name);
+            if (success) {
+                alert(`✅ ${name} разбанен глобально!`);
+                document.getElementById('adminPlayerResult').textContent = `✅ ${name} разбанен`;
+                renderLeaderboard();
+                updateBanUI();
+                updateAdminStats();
+            } else {
+                alert('❌ Ошибка разбана');
+            }
+        });
+
+        // ============================================================
+        //  ВЫДАЧА БОНУСОВ (с мгновенным обновлением)
+        // ============================================================
+        function refreshAllScores() {
+            const s = Math.floor(state.score);
+            scoreEl.textContent = s;
+            shopScoreEl.textContent = s;
+            promoScoreEl.textContent = s;
+            profileScoreEl.textContent = s;
+            caseScoreEl.textContent = s;
+        }
+
+        document.getElementById('adminGiveBonus').addEventListener('click', async () => {
+            const name = document.getElementById('adminBonusPlayer').value.trim();
+            const amount = parseInt(document.getElementById('adminBonusAmount').value);
+            if (!name) { alert('Введите ник'); return; }
+            if (!amount || amount <= 0) { alert('Введите сумму > 0'); return; }
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка');
+                const existing = await checkRes.json();
+
+                if (existing && existing.length > 0) {
+                    const id = existing[0].id;
+                    const newScore = existing[0].score + amount;
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ score: newScore })
+                    });
+                    if (!updateRes.ok) throw new Error('Ошибка обновления');
+
+                    if (name.toLowerCase() === playerName.toLowerCase()) {
+                        state.score = newScore;
+                        render();
+                        refreshAllScores();
+                        lastAutoSaveScore = newScore;
+                        loadProfile(playerName);
+                    }
+
+                    alert(`✅ Игроку ${name} начислено ${amount} очков (теперь ${newScore})`);
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, score: amount })
+                    });
+                    if (!insertRes.ok) throw new Error('Ошибка сохранения');
+
+                    if (name.toLowerCase() === playerName.toLowerCase()) {
+                        state.score = amount;
+                        render();
+                        refreshAllScores();
+                        lastAutoSaveScore = amount;
+                        loadProfile(playerName);
+                    }
+
+                    alert(`✅ Игрок ${name} создан с ${amount} очками`);
+                }
+                renderLeaderboard();
+                updateAdminStats();
+            } catch (e) {
+                alert('❌ Ошибка выдачи бонуса');
+                console.warn(e);
+            }
+        });
+
+        document.getElementById('adminSendAnnounce').addEventListener('click', async () => {
+            const text = document.getElementById('adminAnnounceInput').value.trim();
+            if (!text) { alert('Введите текст объявления'); return; }
+            const success = await saveAnnouncementToSupabase(text);
+            if (success) {
+                alert('✅ Объявление отправлено всем игрокам!');
+                document.getElementById('adminAnnounceInput').value = '';
+                loadAnnouncement();
+            } else {
+                alert('❌ Ошибка отправки объявления');
+            }
+        });
+
+        async function requirePassword(action) {
+            const pass = prompt('Введите пароль для опасного действия:');
+            if (pass !== 'horizon2026') {
+                alert('❌ Неверный пароль!');
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('adminFullClear').addEventListener('click', async () => {
+            if (!await requirePassword('очистки лидерборда')) return;
+            if (!confirm('💀 Удалить ВСЕ записи из лидерборда?')) return;
+            const success = await clearLeaderboard();
+            if (success) {
+                alert('🗑 Лидерборд полностью очищен!');
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                alert('❌ Ошибка очистки');
+            }
+        });
+
+        document.getElementById('adminFullReset').addEventListener('click', async () => {
+            if (!await requirePassword('сброса всех игроков')) return;
+            if (!confirm('💣 Удалить ВСЕ данные всех игроков? (необратимо!)')) return;
+            const success = await clearLeaderboard();
+            if (success) {
+                try {
+                    localStorage.removeItem('horizonGameState');
+                    localStorage.removeItem('horizonPlayerName');
+                    localStorage.removeItem('horizonCaseHistory');
+                } catch (e) {}
+                alert('💣 Все данные сброшены! Страница перезагрузится.');
+                location.reload();
+            } else {
+                alert('❌ Ошибка сброса');
+            }
+        });
+
+        document.getElementById('adminRefreshStats').addEventListener('click', updateAdminStats);
+
+        // ============================================================
+        //  СОБЫТИЯ
+        // ============================================================
+        clickBtn.addEventListener('click', handleClick);
+        resetBtn.addEventListener('click', () => {
+            if (state.score === 0 && state.totalClicks === 0) return;
+            if (confirm('Сбросить весь прогресс игры (магазин и очки)?')) {
+                state.score = 0;
+                state.totalClicks = 0;
+                SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+                caseHistory = [];
+                render();
+                renderCaseHistory();
+                saveState();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Space') {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab && activeTab.id === 'tab-game') {
+                    e.preventDefault();
+                    handleClick(e);
+                }
+            }
+        });
+
+        saveScoreBtn.addEventListener('click', async () => {
+            if (!playerName) {
+                alert('Сначала введите ник!');
+                return;
+            }
+            const maintenanceStatus = await getMaintenanceStatus();
+            if (maintenanceStatus.enabled) {
+                alert(maintenanceStatus.message);
+                return;
+            }
+            if (await isBanned(playerName)) {
+                alert('⛔ Вы забанены и не можете сохранять рекорды!');
+                return;
+            }
+            const score = Math.floor(state.score);
+            if (score < 1) {
+                alert('Наберите хотя бы 1 очко!');
+                return;
+            }
+            const success = await addOrUpdateScore(playerName, score);
+            if (success) {
+                lastAutoSaveScore = score;
+                alert(`✅ Рекорд (${score}) сохранён/обновлён в глобальном лидерборде!`);
+                renderLeaderboard();
+                updateAdminStats();
+                loadProfile(playerName);
+            } else {
+                if (!await isBanned(playerName)) {
+                    alert('❌ Не удалось сохранить. Проверьте интернет или ключи Supabase.');
+                }
+            }
+        });
+
+        clearLeaderboardBtn.addEventListener('click', async () => {
+            if (!confirm('Удалить все записи лидерборда?')) return;
+            if (playerName !== OWNER_NAME) {
+                alert('⛔ Только владелец может очищать лидерборд!');
+                return;
+            }
+            const success = await clearLeaderboard();
+            if (success) {
+                alert('🗑 Лидерборд очищен!');
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                alert('❌ Не удалось очистить. Проверьте интернет.');
+            }
+        });
+
+        // ============================================================
+        //  ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        const hasName = loadPlayerName();
+        loadState();
+        render();
+        renderCases();
+        renderCaseHistory();
+
+        if (!hasName) {
+            showRegister();
+        } else {
+            hideRegister();
+            renderLeaderboard();
+            loadAnnouncement();
+            updateBanUI();
+            loadProfile(playerName);
+            updateMaintenanceUI();
+        }
+
+        startPassiveIncome();
+        startAutoSave();
+
+        window.addEventListener('beforeunload', () => { saveState(); });
+        setInterval(() => { saveState(); }, 15000);
+
+        console.log('🌌 HORIZON CLICKER v9.2 загружен!');
+        console.log('👑 Владелец: tester');
+        console.log('🔐 Админ-панель: 5 кликов по логотипу');
+        console.log('🎁 Кейсы с фото, шансами и историей');
+        console.log('🛠️ Технический перерыв');
+        console.log('👑 Админ-уровни (lvl 1, 2, 3)');
+        console.log('🔊 Звуки кликов и победы');
+        console.log('✨ Частицы');
+        console.log('💾 Автосохранение каждые 10 секунд');
+    </script>
+</body>
+</html>
