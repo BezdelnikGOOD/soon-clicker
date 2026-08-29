@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HORIZON CLICKER · VIP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #080b1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 1rem;
+            overflow: hidden;
+        }
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .app {
+            background: rgba(20, 26, 43, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(79, 126, 255, 0.1);
+            max-width: 780px;
+            width: 100%;
+            max-height: 98vh;
+            overflow-y: auto;
+            border: 1px solid rgba(79, 126, 255, 0.05);
+            position: relative;
+            z-index: 1;
+        }
+        .app::-webkit-scrollbar {
+            width: 4px;
+        }
+        .app::-webkit-scrollbar-track {
+            background: #0f1422;
+            border-radius: 10px;
+        }
+        .app::-webkit-scrollbar-thumb {
+            background: #2e4a7a;
+            border-radius: 10px;
+        }
+
+        /* ===== УВЕДОМЛЕНИЯ ===== */
+        #notificationContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .notification {
+            pointer-events: auto;
+            background: rgba(20, 26, 43, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(79, 126, 255, 0.15);
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            color: #d6e5ff;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .notification.success {
+            border-color: rgba(107, 203, 119, 0.3);
+            background: rgba(26, 58, 46, 0.9);
+        }
+        .notification.error {
+            border-color: rgba(255, 107, 107, 0.3);
+            background: rgba(58, 26, 26, 0.9);
+        }
+        .notification.info {
+            border-color: rgba(79, 195, 255, 0.3);
+            background: rgba(26, 45, 74, 0.9);
+        }
+        .notification .close-btn {
+            background: none;
+            border: none;
+            color: #7a8fc9;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 0.2rem;
+            transition: 0.2s;
+        }
+        .notification .close-btn:hover {
+            color: #d6e5ff;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(20px) scale(0.95);
+            }
+        }
+        .notification.hide {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        .register-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 11, 26, 0.97);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(16px);
+        }
+        .register-overlay.hidden {
+            display: none;
+        }
+        .register-box {
+            background: rgba(20, 26, 43, 0.95);
+            padding: 2.5rem 2rem;
+            border-radius: 2.5rem;
+            border: 1px solid rgba(79, 126, 255, 0.15);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(79, 126, 255, 0.05);
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .register-box h1 {
+            color: #b7c9ff;
+            font-weight: 300;
+            letter-spacing: 6px;
+            font-size: 2.2rem;
+            text-shadow: 0 0 40px rgba(79, 126, 255, 0.15);
+        }
+        .register-box .sub {
+            color: #7a8fc9;
+            font-size: 0.85rem;
+            margin: 0.3rem 0 1.5rem;
+        }
+        .register-box input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid rgba(46, 63, 106, 0.5);
+            background: rgba(15, 20, 34, 0.8);
+            color: #d6e5ff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .register-box input:focus {
+            border-color: #4f7eff;
+            box-shadow: 0 0 30px rgba(79, 126, 255, 0.1);
+        }
+        .register-box input::placeholder {
+            color: #5a6f9a;
+        }
+        .register-box button {
+            margin-top: 1.2rem;
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #4f7eff, #2a4a7a);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(79, 126, 255, 0.2);
+        }
+        .register-box button:active {
+            transform: scale(0.96);
+        }
+        .register-box .error {
+            color: #ff6b7a;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            height: 1.2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .header .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .header .title-wrap h1 {
+            color: #b7c9ff;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 1.4rem;
+            text-shadow: 0 0 20px rgba(79, 126, 255, 0.1);
+            cursor: default;
+        }
+        .header .title-wrap .secret-trigger {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: transparent;
+            user-select: none;
+        }
+        .header .title-wrap .secret-trigger:hover {
+            color: rgba(79, 126, 255, 0.1);
+        }
+        .header .player-name {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: rgba(15, 20, 34, 0.6);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            border: 1px solid rgba(46, 63, 106, 0.3);
+        }
+        .header .player-name span {
+            color: #d6e5ff;
+            font-weight: 600;
+        }
+        .header .vip-badge {
+            background: rgba(245, 197, 66, 0.15);
+            border: 1px solid rgba(245, 197, 66, 0.2);
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            color: #f5c542;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: rgba(26, 38, 69, 0.6);
+            border: 1px solid rgba(46, 63, 106, 0.3);
+            color: #8ba0dd;
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #2e4a7a, #1a2d4a);
+            border-color: #4f7eff;
+            color: #d6e5ff;
+            box-shadow: 0 0 30px rgba(79, 126, 255, 0.05);
+        }
+        .tab-btn:active {
+            transform: scale(0.94);
+        }
+        .tab-btn.admin-tab {
+            border-color: rgba(255, 107, 74, 0.3);
+            color: #ff8a6a;
+        }
+        .tab-btn.admin-tab.active {
+            background: rgba(74, 31, 42, 0.6);
+            border-color: #ff6b4a;
+            color: #ffb09a;
+            box-shadow: 0 0 30px rgba(255, 80, 40, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            background: rgba(15, 20, 34, 0.6);
+            padding: 0.6rem 1.2rem;
+            border-radius: 60px;
+            border: 1px solid rgba(46, 63, 106, 0.2);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .score-block {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            color: #8ba0dd;
+            font-weight: 500;
+        }
+        .score-num {
+            color: #d6e5ff;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: 0.15s;
+        }
+        .score-num.pop {
+            animation: pop 0.2s ease;
+        }
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .per-sec {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: rgba(26, 38, 69, 0.5);
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            border: 1px solid rgba(49, 71, 120, 0.3);
+        }
+
+        .click-btn {
+            background: radial-gradient(circle at 30% 25%, #4f7eff, #1a2d66);
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 12px 0 #0b142f, 0 10px 40px rgba(79, 126, 255, 0.15);
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.06s linear;
+            margin: 0.2rem auto 1rem;
+            display: block;
+            text-shadow: 0 3px 0 #0b142f;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        .click-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 4px 0 #0b142f;
+        }
+        .click-btn.banned,
+        .click-btn.maintenance-mode {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #3a1a1f;
+            background: radial-gradient(circle at 30% 25%, #4a2a2a, #2a1a1a);
+        }
+        .click-btn.maintenance-mode {
+            box-shadow: 0 4px 0 #3a3a1a;
+            background: radial-gradient(circle at 30% 25%, #4a4a2a, #2a2a1a);
+        }
+
+        .refresh-btn {
+            background: rgba(26, 58, 46, 0.6);
+            border: 1px solid rgba(42, 106, 74, 0.3);
+            color: #8affb0;
+            padding: 0.4rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+        .refresh-btn:active {
+            transform: scale(0.94);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            background: rgba(15, 20, 34, 0.4);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(31, 45, 74, 0.3);
+            margin-top: 0.3rem;
+        }
+        .stats-row span {
+            color: #d4e2ff;
+            font-weight: 600;
+        }
+        .level-badge {
+            background: rgba(245, 197, 66, 0.15);
+            border: 1px solid rgba(245, 197, 66, 0.2);
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            color: #f5c542;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .cps-badge {
+            background: rgba(79, 195, 255, 0.1);
+            border: 1px solid rgba(79, 195, 255, 0.15);
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            color: #4fc3ff;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .shop-card {
+            background: rgba(15, 22, 41, 0.6);
+            border: 1px solid rgba(37, 52, 90, 0.3);
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .shop-card:hover {
+            border-color: rgba(79, 126, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .shop-card .title {
+            color: #b7ccff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .shop-card .title .level {
+            color: #7a8fc9;
+            font-size: 0.7rem;
+            background: rgba(26, 38, 69, 0.5);
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+        }
+        .shop-card .desc {
+            color: #8ba0dd;
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+        .shop-card .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.2rem;
+        }
+        .shop-card .price {
+            color: #f5c542;
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: rgba(30, 31, 46, 0.5);
+            padding: 0.1rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid rgba(61, 63, 90, 0.3);
+        }
+        .shop-card button {
+            background: rgba(31, 43, 74, 0.6);
+            border: none;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            color: #d4e2ff;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid rgba(49, 71, 120, 0.3);
+        }
+        .shop-card button:active {
+            transform: scale(0.94);
+            background: rgba(43, 59, 100, 0.6);
+        }
+        .shop-card button:disabled {
+            opacity: 0.4;
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+        .shop-card button.buy-btn {
+            background: rgba(30, 58, 95, 0.6);
+            border-color: rgba(58, 106, 159, 0.3);
+        }
+        .shop-card button.buy-btn:hover:not(:disabled) {
+            background: rgba(42, 78, 122, 0.6);
+        }
+        .shop-card.rename-card {
+            border-color: rgba(245, 197, 66, 0.15);
+            background: rgba(26, 31, 42, 0.4);
+        }
+        .shop-card.rename-card .title {
+            color: #f5c542;
+        }
+
+        /* ===== VIP КАРТОЧКИ ===== */
+        .vip-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .vip-card {
+            background: rgba(15, 22, 41, 0.6);
+            border: 1px solid rgba(37, 52, 90, 0.3);
+            border-radius: 1.2rem;
+            padding: 1rem;
+            text-align: center;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+        }
+        .vip-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(79, 126, 255, 0.2);
+        }
+        .vip-card .vip-icon {
+            font-size: 3rem;
+            margin-bottom: 0.2rem;
+        }
+        .vip-card .vip-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+        .vip-card .vip-price {
+            color: #f5c542;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .vip-card .vip-bonuses {
+            color: #8ba0dd;
+            font-size: 0.75rem;
+            margin: 0.3rem 0;
+            line-height: 1.4;
+        }
+        .vip-card .vip-btn {
+            background: radial-gradient(circle at 30% 25%, #f5c542, #b38728);
+            border: none;
+            padding: 0.4rem 1.5rem;
+            border-radius: 60px;
+            color: #0b0e1a;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.1s;
+            margin-top: 0.3rem;
+        }
+        .vip-card .vip-btn:active {
+            transform: scale(0.94);
+        }
+        .vip-card .vip-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .vip-card .vip-own {
+            background: rgba(107, 203, 119, 0.15);
+            border: 1px solid rgba(107, 203, 119, 0.2);
+            color: #6bcb77;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 0.3rem;
+        }
+        .vip-card.common {
+            border-color: rgba(107, 203, 119, 0.2);
+        }
+        .vip-card.common .vip-name {
+            color: #6bcb77;
+        }
+        .vip-card.silver {
+            border-color: rgba(192, 192, 192, 0.2);
+        }
+        .vip-card.silver .vip-name {
+            color: #c0c0c0;
+        }
+        .vip-card.gold {
+            border-color: rgba(245, 197, 66, 0.2);
+        }
+        .vip-card.gold .vip-name {
+            color: #f5c542;
+        }
+        .vip-card.diamond {
+            border-color: rgba(79, 195, 255, 0.2);
+        }
+        .vip-card.diamond .vip-name {
+            color: #4fc3ff;
+        }
+
+        .leaderboard {
+            margin-top: 0.5rem;
+        }
+        .lb-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 22, 41, 0.4);
+            border: 1px solid rgba(31, 45, 74, 0.3);
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.3rem;
+            color: #b7ccff;
+            transition: 0.2s;
+        }
+        .lb-entry:hover {
+            border-color: rgba(79, 126, 255, 0.1);
+        }
+        .lb-entry .rank {
+            font-weight: 700;
+            color: #4f7eff;
+            min-width: 30px;
+        }
+        .lb-entry .name {
+            flex: 1;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+        .lb-entry .lb-score {
+            color: #f5c542;
+            font-weight: 700;
+        }
+        .lb-entry.me {
+            border-color: rgba(79, 126, 255, 0.2);
+            background: rgba(26, 45, 74, 0.4);
+            box-shadow: 0 0 30px rgba(79, 126, 255, 0.02);
+        }
+        .lb-empty {
+            color: #5a6f9a;
+            text-align: center;
+            padding: 1.5rem 0;
+            font-style: italic;
+        }
+        .lb-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .lb-actions button {
+            background: rgba(26, 38, 69, 0.6);
+            border: 1px solid rgba(46, 63, 106, 0.3);
+            color: #b7ccff;
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: 0.15s;
+        }
+        .lb-actions button:active {
+            transform: scale(0.94);
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .admin-card {
+            background: rgba(15, 22, 41, 0.4);
+            border: 1px solid rgba(42, 58, 90, 0.3);
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+        .admin-card h3 {
+            color: #ff8a6a;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            letter-spacing: 1px;
+        }
+        .admin-card .admin-row {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 0.3rem;
+        }
+        .admin-card input,
+        .admin-card select {
+            background: rgba(15, 20, 34, 0.6);
+            border: 1px solid rgba(46, 63, 106, 0.3);
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            color: #d6e5ff;
+            font-size: 0.8rem;
+            outline: none;
+            flex: 1;
+            min-width: 80px;
+        }
+        .admin-card input::placeholder {
+            color: #5a6f9a;
+        }
+        .admin-card button {
+            background: rgba(26, 38, 69, 0.6);
+            border: 1px solid rgba(46, 63, 106, 0.3);
+            color: #b7ccff;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.7rem;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .admin-card button:active {
+            transform: scale(0.94);
+        }
+        .admin-card button.admin-danger {
+            background: rgba(58, 31, 46, 0.6);
+            border-color: rgba(106, 49, 72, 0.3);
+            color: #ffb0c8;
+        }
+        .admin-card button.admin-success {
+            background: rgba(26, 58, 46, 0.6);
+            border-color: rgba(42, 106, 74, 0.3);
+            color: #8affb0;
+        }
+        .admin-card .stat-line {
+            color: #8ba0dd;
+            font-size: 0.8rem;
+            padding: 0.1rem 0;
+        }
+        .admin-card .stat-line span {
+            color: #d6e5ff;
+            font-weight: 600;
+        }
+        .admin-full {
+            grid-column: 1 / -1;
+        }
+        .admin-warning {
+            color: #ff6b4a;
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .console-box {
+            background: rgba(11, 14, 26, 0.8);
+            border: 1px solid rgba(42, 58, 90, 0.3);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            margin-top: 0.3rem;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #8ba0dd;
+            display: none;
+        }
+        .console-box.open {
+            display: block;
+        }
+        .console-box .log-entry {
+            padding: 0.1rem 0;
+            border-bottom: 1px solid rgba(26, 31, 42, 0.3);
+        }
+        .console-box .log-entry.error {
+            color: #ff6b6b;
+        }
+        .console-box .log-entry.success {
+            color: #6bcb77;
+        }
+        .console-box .log-entry.info {
+            color: #4fc3ff;
+        }
+        .console-box::-webkit-scrollbar {
+            width: 3px;
+        }
+        .console-box::-webkit-scrollbar-track {
+            background: #0f1422;
+            border-radius: 10px;
+        }
+        .console-box::-webkit-scrollbar-thumb {
+            background: #2e3f6a;
+            border-radius: 10px;
+        }
+
+        .reset-area {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.8rem;
+        }
+        .reset-btn {
+            background: rgba(58, 31, 46, 0.6);
+            border: 1px solid rgba(106, 49, 72, 0.3);
+            color: #ffb0c8;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 0.8rem;
+        }
+        .reset-btn:active {
+            transform: scale(0.94);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 0.8rem;
+            font-size: 0.6rem;
+            color: #3d4e7a;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        .announcement-banner,
+        .maintenance-banner {
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-size: 0.85rem;
+            backdrop-filter: blur(8px);
+            display: none;
+        }
+        .announcement-banner {
+            background: rgba(26, 45, 74, 0.6);
+            border: 1px solid rgba(79, 126, 255, 0.15);
+            color: #b7ccff;
+            box-shadow: 0 0 40px rgba(79, 126, 255, 0.02);
+        }
+        .announcement-banner .close-announce {
+            float: right;
+            cursor: pointer;
+            color: #7a8fc9;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+        .maintenance-banner {
+            background: rgba(42, 26, 26, 0.6);
+            border: 1px solid rgba(255, 107, 74, 0.15);
+            color: #ffb09a;
+            box-shadow: 0 0 40px rgba(255, 80, 40, 0.02);
+        }
+        .maintenance-banner .close-maintenance {
+            float: right;
+            cursor: pointer;
+            color: #ff6b4a;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .glow-text {
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #ff6b6b);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowMove 4s linear infinite;
+            font-weight: 700;
+        }
+        @keyframes rainbowMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 300% 50%;
+            }
+        }
+        .owner-glow {
+            background: linear-gradient(90deg, #ffd700, #ff6b00, #ffd700, #ff4500, #ffd700);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireMove 2.5s linear infinite;
+            font-weight: 700;
+        }
+        @keyframes fireMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 300% 50%;
+            }
+        }
+
+        .trade-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .trade-container input {
+            background: rgba(15, 20, 34, 0.6);
+            border: 1px solid rgba(46, 63, 106, 0.3);
+            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            color: #d6e5ff;
+            font-size: 0.9rem;
+            outline: none;
+            flex: 1;
+            min-width: 120px;
+        }
+        .trade-container input::placeholder {
+            color: #5a6f9a;
+        }
+        .trade-btn {
+            background: radial-gradient(circle at 30% 25%, #f5c542, #b38728);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            color: #0b0e1a;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .trade-btn:active {
+            transform: scale(0.94);
+        }
+        .trade-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .trade-message {
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            min-height: 1.2rem;
+        }
+        .trade-message.success {
+            color: #6bcb77;
+        }
+        .trade-message.error {
+            color: #ff6b6b;
+        }
+
+        .daily-bonus-box {
+            background: rgba(245, 197, 66, 0.05);
+            border: 1px solid rgba(245, 197, 66, 0.15);
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .daily-bonus-box .bonus-btn {
+            background: radial-gradient(circle at 30% 25%, #f5c542, #b38728);
+            border: none;
+            padding: 0.5rem 2rem;
+            border-radius: 60px;
+            color: #0b0e1a;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.1s;
+            margin-top: 0.3rem;
+        }
+        .daily-bonus-box .bonus-btn:active {
+            transform: scale(0.94);
+        }
+        .daily-bonus-box .bonus-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .daily-bonus-box .bonus-status {
+            color: #7a8fc9;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            font-weight: 700;
+            font-size: 1.2rem;
+            animation: particleFly 0.7s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            will-change: transform, opacity;
+        }
+        @keyframes particleFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 650px) {
+            .app {
+                padding: 1rem;
+            }
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            .shop-grid {
+                grid-template-columns: 1fr;
+            }
+            .vip-grid {
+                grid-template-columns: 1fr;
+            }
+            .click-btn {
+                width: 120px;
+                height: 120px;
+                font-size: 1.4rem;
+            }
+            .score-num {
+                font-size: 1.8rem;
+            }
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            .tab-btn {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.7rem;
+            }
+            .register-box {
+                padding: 1.8rem 1.2rem;
+            }
+            .register-box h1 {
+                font-size: 1.6rem;
+            }
+            #notificationContainer {
+                max-width: 90%;
+                right: 5%;
+                top: 10px;
+            }
+        }
+        @media (max-width: 450px) {
+            .click-btn {
+                width: 100px;
+                height: 100px;
+                font-size: 1.1rem;
+            }
+            .score-num {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="stars-canvas"></canvas>
+    <div class="particle-container" id="particleContainer"></div>
+    <div id="notificationContainer"></div>
+
+    <div class="register-overlay" id="registerOverlay">
+        <div class="register-box">
+            <h1>🌌 HORIZON</h1>
+            <div class="sub">Введите ваш игровой ник</div>
+            <input type="text" id="registerInput" placeholder="Например: Horizon_Pro" maxlength="20" autofocus>
+            <div class="error" id="registerError"></div>
+            <button id="registerBtn">🚀 Войти в игру</button>
+        </div>
+    </div>
+
+    <div class="app" id="app">
+        <div class="header">
+            <div class="title-wrap">
+                <h1 id="secretAdminTrigger">🌌 HORIZON</h1>
+                <button class="secret-trigger" id="secretAdminTriggerBtn" title="Админ-панель (5 кликов)">⚙️</button>
+            </div>
+            <div class="player-name">👤 <span id="playerNameDisplay">—</span></div>
+            <div class="tab-buttons" id="tabButtons">
+                <button class="tab-btn active" data-tab="game">🎮 Игра</button>
+                <button class="tab-btn" data-tab="shop">🏪 Магазин</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Лидерборд</button>
+                <button class="tab-btn" data-tab="trade">💸 Трейд</button>
+            </div>
+        </div>
+
+        <div class="announcement-banner" id="announcementBanner">
+            <span class="close-announce" id="closeAnnounce">✕</span>
+            <span id="announcementText"></span>
+        </div>
+
+        <div class="maintenance-banner" id="maintenanceBanner">
+            <span class="close-maintenance" id="closeMaintenance">✕</span>
+            <span id="maintenanceText">🛠️ Технические работы. Скоро вернёмся!</span>
+        </div>
+
+        <div class="tab-content active" id="tab-game">
+            <div class="top-panel">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="scoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="perSecDisplay">+0/сек</div>
+                <span class="level-badge" id="levelBadge">⭐ Ур. 1</span>
+                <span class="cps-badge" id="cpsBadge">⚡ 0 CPS</span>
+            </div>
+            <div class="daily-bonus-box" id="dailyBonusBox">
+                <div style="color:#f5c542; font-size:0.9rem;">🎁 Ежедневный бонус</div>
+                <div class="bonus-status" id="dailyBonusStatus">+50 монет каждый день!</div>
+                <button class="bonus-btn" id="dailyBonusBtn">🎁 Забрать бонус</button>
+            </div>
+            <button class="click-btn" id="clickBtn">КЛИК</button>
+            <div style="text-align:center; margin:0.3rem 0;">
+                <button class="refresh-btn" id="refreshBalanceBtn">🔄 Обновить баланс</button>
+            </div>
+            <div class="stats-row">
+                <span>Всего кликов: <span id="totalClicksDisplay">0</span></span>
+                <span>Сила клика: <span id="clickPowerDisplay">1</span></span>
+                <span>Опыт: <span id="expDisplay">0</span></span>
+            </div>
+            <div class="reset-area">
+                <button class="reset-btn" id="resetBtn">⟳ сброс прогресса</button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-shop">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="shopScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="shopPerSec">+0/сек</div>
+            </div>
+            <div class="tab-buttons" style="margin-bottom:0.5rem; gap:0.3rem;">
+                <button class="tab-btn active" data-shop-tab="upgrades">⬆️ Улучшения</button>
+                <button class="tab-btn" data-shop-tab="vip">👑 VIP</button>
+            </div>
+            <div id="shopUpgradesContainer">
+                <div style="text-align:right; margin-bottom:0.5rem;">
+                    <button id="buyAllBtn" style="background:rgba(245,197,66,0.15); border:1px solid rgba(245,197,66,0.2); color:#f5c542; padding:0.3rem 1.2rem; border-radius:30px; font-weight:600; cursor:pointer; font-size:0.8rem;">⚡ Купить всё</button>
+                </div>
+                <div class="shop-grid" id="shopContainer"></div>
+            </div>
+            <div id="shopVipContainer" style="display:none;">
+                <div class="vip-grid" id="vipContainer"></div>
+            </div>
+            <div style="margin-top: 0.8rem; text-align: right; font-size: 0.7rem; color: #5a6f9a;">
+                * цены растут с каждым уровнем
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-leaderboard">
+            <div class="leaderboard" id="leaderboardContainer">
+                <div class="lb-empty">🏆 Загрузка...</div>
+            </div>
+            <div class="lb-actions">
+                <button id="saveScoreBtn">💾 Сохранить результат</button>
+            </div>
+            <div style="margin-top: 0.5rem; text-align: center; font-size: 0.65rem; color: #5a6f9a;">
+                Сохраняются топ-10 игроков
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-trade">
+            <div class="top-panel" style="margin-bottom: 0.8rem;">
+                <div class="score-block">
+                    <span>🪙</span>
+                    <span class="score-num" id="tradeScoreDisplay">0</span>
+                </div>
+                <div class="per-sec" id="tradePerSec">+0/сек</div>
+            </div>
+            <div style="background:rgba(15,22,41,0.4); border:1px solid rgba(37,52,90,0.3); border-radius:1.2rem; padding:1rem;">
+                <h3 style="color:#f5c542; font-weight:300; margin-bottom:0.5rem;">💸 Перевести монеты</h3>
+                <div class="trade-container">
+                    <input type="text" id="tradeRecipient" placeholder="Ник получателя">
+                    <input type="number" id="tradeAmount" placeholder="Сумма" value="10" min="1" style="max-width:120px;">
+                    <button id="tradeSendBtn" class="trade-btn">📤 Отправить</button>
+                </div>
+                <div id="tradeMessage" class="trade-message"></div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-admin">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <h2 style="color:#ff8a6a; font-weight:300; letter-spacing:2px;">🔐 АДМИН-ПАНЕЛЬ</h2>
+                <span style="color:#7a8fc9; font-size:0.7rem;">Владелец: <span style="color:#ff8a6a; font-weight:600;">tester</span></span>
+            </div>
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h3>📊 Статистика</h3>
+                    <div class="stat-line">Всего игроков: <span id="adminTotalPlayers">0</span></div>
+                    <div class="stat-line">Средний счёт: <span id="adminAvgScore">0</span></div>
+                    <div class="stat-line">Топ-1: <span id="adminTop1">—</span></div>
+                    <button id="adminRefreshStats" style="margin-top:0.3rem;">🔄 Обновить</button>
+                </div>
+                <div class="admin-card">
+                    <h3>👥 Управление игроками</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminPlayerSearch" placeholder="Ник игрока">
+                        <button id="adminFindPlayer">🔍 Найти</button>
+                    </div>
+                    <div class="admin-row" id="adminPlayerResult" style="font-size:0.75rem; color:#8ba0dd; min-height:1.2rem;"></div>
+                    <div class="admin-row">
+                        <button id="adminDeletePlayer" class="admin-danger">🗑 Удалить</button>
+                        <button id="adminBanPlayer" class="admin-danger">⛔ Бан</button>
+                        <button id="adminUnbanPlayer" class="admin-success">✅ Разбан</button>
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminFullDeletePlayer" class="admin-danger" style="background:rgba(106,26,26,0.6); border-color:rgba(138,42,42,0.3);">🗑 Удалить аккаунт полностью</button>
+                    </div>
+                    <div id="adminBannedList" style="font-size:0.7rem; color:#ff6b7a; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>🎁 Выдача бонусов</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminBonusPlayer" placeholder="Ник игрока">
+                        <input type="number" id="adminBonusAmount" placeholder="Сумма" value="100" style="max-width:80px;">
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminGiveBonus" class="admin-success">💰 Выдать</button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3>📢 Объявление</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminAnnounceInput" placeholder="Текст объявления" style="flex:2;">
+                    </div>
+                    <div class="admin-row">
+                        <button id="adminSendAnnounce" class="admin-success">📨 Отправить всем</button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3>🛠️ Технический перерыв</h3>
+                    <div class="admin-row">
+                        <input type="text" id="adminMaintenanceMessage" placeholder="Текст уведомления" value="🛠️ Технические работы. Скоро вернёмся!" style="flex:2;">
+                        <button id="adminMaintenanceEnable" class="admin-danger">⏸ Включить</button>
+                        <button id="adminMaintenanceDisable" class="admin-success">▶️ Выключить</button>
+                    </div>
+                    <div id="adminMaintenanceStatus" style="font-size:0.75rem; margin-top:0.2rem;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>🐞 Консоль</h3>
+                    <div class="admin-row">
+                        <button id="adminConsoleToggle" class="admin-success">📋 Показать логи</button>
+                        <button id="adminConsoleClear" class="admin-danger">🗑 Очистить</button>
+                    </div>
+                    <div class="console-box" id="consoleBox">
+                        <div style="color:#5a6f9a; font-style:italic; padding:0.2rem;">Логи будут здесь...</div>
+                    </div>
+                </div>
+                <div class="admin-card admin-full">
+                    <h3 style="color:#ff6b4a;">⚠️ Опасные действия</h3>
+                    <div class="admin-row">
+                        <button id="adminFullClear" class="admin-danger">🗑 Полная очистка лидерборда</button>
+                        <button id="adminFullReset" class="admin-danger">💣 Сброс всех игроков</button>
+                    </div>
+                    <div class="admin-warning">Для опасных действий требуется пароль: <span style="color:#ff6b4a; font-weight:600;">horizon2026</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">HORIZON · v12.1 · VIP статусы</div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  SUPABASE
+        // ============================================================
+        const SUPABASE_URL = 'https://vsavunuhtigqjhnsagqa.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_O-kJHu6vHE_SB_tugQ3ddQ_003DrW2s';
+
+        // ============================================================
+        //  КОНФИГ
+        // ============================================================
+        const OWNER_NAME = 'tester';
+        const RENAME_COST = 500;
+        const DAILY_BONUS_AMOUNT = 50;
+
+        const VIP_TIERS = [
+            { id: 'common', name: '🟢 Базовый', price: 500, bonusClick: 0.05, bonusPassive: 0, color: '#6bcb77' },
+            { id: 'silver', name: '🔵 Серебряный', price: 1500, bonusClick: 0.15, bonusPassive: 0.10, color: '#c0c0c0' },
+            { id: 'gold', name: '🟣 Золотой', price: 3500, bonusClick: 0.30, bonusPassive: 0.25, color: '#f5c542' },
+            { id: 'diamond', name: '🔥 Алмазный', price: 8000, bonusClick: 0.60, bonusPassive: 0.50, color: '#4fc3ff' }
+        ];
+
+        let SHOP_ITEMS = [
+            { id: 'clickPower', label: '💪 Сила клика', desc: '+1 за клик', baseCost: 30, costMultiplier: 1.5,
+                maxLevel: 99, effect: (l) => ({ clickBonus: l * 1 }) },
+            { id: 'autoClicker', label: '🤖 Автокликер', desc: '+0.5 кликов/сек', baseCost: 80, costMultiplier: 1.7,
+                maxLevel: 50, effect: (l) => ({ passiveIncome: l * 0.5 }) },
+            { id: 'passiveMulti', label: '📈 Пассивный бонус', desc: '+20% к пассивному доходу', baseCost: 150,
+                costMultiplier: 2.0, maxLevel: 30, effect: (l) => ({ passiveMult: 1 + l * 0.20 }) },
+            { id: 'clickMulti', label: '🔥 Множитель клика', desc: '+15% к силе клика', baseCost: 200, costMultiplier: 2.2,
+                maxLevel: 25, effect: (l) => ({ clickMult: 1 + l * 0.15 }) }
+        ];
+
+        let state = {
+            score: 0,
+            totalClicks: 0,
+            levels: {},
+            exp: 0,
+            level: 1,
+            vip: null // id VIP-статуса
+        };
+        SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+
+        let playerName = '';
+        let lastAutoSaveScore = 0;
+        let clickHistory = [];
+        let cps = 0;
+
+        let cache = {
+            leaderboard: null,
+            leaderboardTimestamp: 0,
+            banned: null,
+            bannedTimestamp: 0,
+            maintenance: null,
+            maintenanceTimestamp: 0,
+        };
+        const CACHE_TTL = 30000;
+
+        let consoleLogs = [];
+
+        // ============================================================
+        //  УВЕДОМЛЕНИЯ
+        // ============================================================
+        function showNotification(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('notificationContainer');
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = `
+                <span>${message}</span>
+                <button class="close-btn">✕</button>
+            `;
+            container.appendChild(notif);
+
+            const closeBtn = notif.querySelector('.close-btn');
+            closeBtn.addEventListener('click', () => {
+                notif.classList.add('hide');
+                setTimeout(() => notif.remove(), 300);
+            });
+
+            setTimeout(() => {
+                if (notif.parentNode) {
+                    notif.classList.add('hide');
+                    setTimeout(() => notif.remove(), 300);
+                }
+            }, duration);
+
+            return notif;
+        }
+
+        function addConsoleLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            consoleLogs.push({ time: timestamp, message, type });
+            if (consoleLogs.length > 100) consoleLogs.shift();
+            renderConsole();
+        }
+
+        function renderConsole() {
+            const box = document.getElementById('consoleBox');
+            if (consoleLogs.length === 0) {
+                box.innerHTML = `<div style="color:#5a6f9a; font-style:italic; padding:0.2rem;">Логи будут здесь...</div>`;
+                return;
+            }
+            let html = '';
+            consoleLogs.forEach(log => {
+                html += `<div class="log-entry ${log.type}">[${log.time}] ${log.message}</div>`;
+            });
+            box.innerHTML = html;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // ============================================================
+        //  ЗВЁЗДНЫЙ ФОН
+        // ============================================================
+        const canvas = document.getElementById('stars-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let animationId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createStars(count = 150) {
+            stars = [];
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5 + 0.5,
+                    speed: Math.random() * 0.3 + 0.1,
+                    opacity: Math.random() * 0.8 + 0.2,
+                });
+            }
+        }
+
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.fill();
+            });
+            animationId = requestAnimationFrame(drawStars);
+        }
+
+        createStars();
+        drawStars();
+
+        // ============================================================
+        //  ЗВУКИ
+        // ============================================================
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playClickSound(volume = 0.15) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(800 + Math.random() * 400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.06);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.06);
+                const bufferSize = audioCtx.sampleRate * 0.01;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.15;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.05 * volume, audioCtx.currentTime);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.01);
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start(audioCtx.currentTime);
+                noise.stop(audioCtx.currentTime + 0.01);
+            } catch (e) {}
+        }
+
+        // ============================================================
+        //  ЧАСТИЦЫ
+        // ============================================================
+        function spawnParticles(x, y, count = 7) {
+            const container = document.getElementById('particleContainer');
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#ffd93d', '#6bcb77'];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 100;
+                p.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                p.style.setProperty('--ty', Math.sin(angle) * distance - 20 + 'px');
+                const val = Math.floor(Math.random() * 3) + 1;
+                p.textContent = '+' + val;
+                p.style.fontSize = (1.0 + Math.random() * 0.6) + 'rem';
+                p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.left = (x + (Math.random() - 0.5) * 16) + 'px';
+                p.style.top = (y + (Math.random() - 0.5) * 16) + 'px';
+                p.style.textShadow = `0 0 20px ${colors[Math.floor(Math.random() * colors.length)]}40`;
+                p.style.animationDelay = (Math.random() * 0.1) + 's';
+                p.style.animationDuration = (0.6 + Math.random() * 0.3) + 's';
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 1200);
+            }
+        }
+
+        // ============================================================
+        //  DOM
+        // ============================================================
+        const registerOverlay = document.getElementById('registerOverlay');
+        const registerInput = document.getElementById('registerInput');
+        const registerBtn = document.getElementById('registerBtn');
+        const registerError = document.getElementById('registerError');
+        const playerNameDisplay = document.getElementById('playerNameDisplay');
+
+        const scoreEl = document.getElementById('scoreDisplay');
+        const shopScoreEl = document.getElementById('shopScoreDisplay');
+        const tradeScoreEl = document.getElementById('tradeScoreDisplay');
+        const perSecEl = document.getElementById('perSecDisplay');
+        const shopPerSecEl = document.getElementById('shopPerSec');
+        const tradePerSecEl = document.getElementById('tradePerSec');
+        const totalClicksEl = document.getElementById('totalClicksDisplay');
+        const clickPowerEl = document.getElementById('clickPowerDisplay');
+        const expDisplay = document.getElementById('expDisplay');
+        const levelBadge = document.getElementById('levelBadge');
+        const cpsBadge = document.getElementById('cpsBadge');
+        const clickBtn = document.getElementById('clickBtn');
+        const refreshBalanceBtn = document.getElementById('refreshBalanceBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shopContainer = document.getElementById('shopContainer');
+        const vipContainer = document.getElementById('vipContainer');
+        const leaderboardContainer = document.getElementById('leaderboardContainer');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+
+        const announcementBanner = document.getElementById('announcementBanner');
+        const announcementText = document.getElementById('announcementText');
+        const closeAnnounce = document.getElementById('closeAnnounce');
+
+        const maintenanceBanner = document.getElementById('maintenanceBanner');
+        const maintenanceText = document.getElementById('maintenanceText');
+        const closeMaintenance = document.getElementById('closeMaintenance');
+
+        const dailyBonusBtn = document.getElementById('dailyBonusBtn');
+        const dailyBonusStatus = document.getElementById('dailyBonusStatus');
+
+        const tradeRecipient = document.getElementById('tradeRecipient');
+        const tradeAmount = document.getElementById('tradeAmount');
+        const tradeSendBtn = document.getElementById('tradeSendBtn');
+        const tradeMessage = document.getElementById('tradeMessage');
+
+        const tabButtons = document.getElementById('tabButtons');
+        let adminUnlocked = false;
+
+        const adminTrigger = document.getElementById('secretAdminTrigger');
+        const adminTriggerBtn = document.getElementById('secretAdminTriggerBtn');
+
+        let adminClicks = 0;
+        let adminTimer = null;
+
+        // ============================================================
+        //  АДМИН-ТРИГГЕР
+        // ============================================================
+        function handleAdminTrigger(e) {
+            e.stopPropagation();
+            adminClicks++;
+            clearTimeout(adminTimer);
+            adminTimer = setTimeout(() => { adminClicks = 0; }, 1000);
+            if (adminClicks >= 5) {
+                adminClicks = 0;
+                if (playerName === OWNER_NAME) {
+                    unlockAdmin();
+                } else {
+                    showNotification('⛔ Доступ только для владельца: tester', 'error');
+                }
+            }
+        }
+
+        adminTrigger.addEventListener('click', handleAdminTrigger);
+        adminTriggerBtn.addEventListener('click', handleAdminTrigger);
+
+        function unlockAdmin() {
+            if (adminUnlocked) return;
+            adminUnlocked = true;
+            const adminTab = document.createElement('button');
+            adminTab.className = 'tab-btn admin-tab';
+            adminTab.dataset.tab = 'admin';
+            adminTab.textContent = '🔐 Админ';
+            tabButtons.appendChild(adminTab);
+            adminTab.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                adminTab.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('tab-admin').classList.add('active');
+                updateAdminStats();
+                updateMaintenanceUI();
+                addConsoleLog('Админ-панель открыта', 'info');
+            });
+            const notify = document.createElement('div');
+            notify.style.cssText =
+                'background:#1a2d4a; border:1px solid #ff8a6a; border-radius:1rem; padding:0.4rem 1rem; margin-bottom:0.5rem; color:#ffb09a; font-size:0.8rem; text-align:center;';
+            notify.textContent = '🔐 Админ-панель разблокирована!';
+            document.getElementById('app').insertBefore(notify, document.querySelector('.tab-content'));
+            setTimeout(() => { notify.style.display = 'none'; }, 3000);
+            addConsoleLog('Админ-панель разблокирована владельцем', 'success');
+            showNotification('🔐 Админ-панель разблокирована!', 'success');
+        }
+
+        // ============================================================
+        //  РЕГИСТРАЦИЯ
+        // ============================================================
+        async function isNickTaken(name) {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=name`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const data = await res.json();
+                return data && data.length > 0;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function loadPlayerName() {
+            try {
+                const saved = localStorage.getItem('horizonPlayerName');
+                if (saved && saved.trim()) {
+                    playerName = saved.trim();
+                    addConsoleLog(`Загружен ник: ${playerName}`, 'info');
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        function savePlayerName(name) {
+            try {
+                localStorage.setItem('horizonPlayerName', name.trim());
+                addConsoleLog(`Сохранён ник: ${name}`, 'info');
+            } catch (e) {}
+        }
+
+        function hideRegister() {
+            registerOverlay.classList.add('hidden');
+            if (playerName === OWNER_NAME) {
+                playerNameDisplay.innerHTML = `<span class="owner-glow">${playerName} 👑</span>`;
+            } else {
+                playerNameDisplay.innerHTML = `<span class="glow-text">${playerName}</span>`;
+            }
+            addConsoleLog(`Игрок вошёл: ${playerName}`, 'success');
+            checkAccountDeleted();
+            checkDailyBonus();
+            loadVipStatus();
+        }
+
+        function showRegister() {
+            registerOverlay.classList.remove('hidden');
+            registerInput.value = '';
+            registerError.textContent = '';
+            setTimeout(() => registerInput.focus(), 100);
+        }
+
+        async function handleRegister() {
+            const name = registerInput.value.trim();
+            if (name.length < 2) {
+                registerError.textContent = '❌ Минимум 2 символа';
+                return;
+            }
+            if (name.length > 20) {
+                registerError.textContent = '❌ Максимум 20 символов';
+                return;
+            }
+            if (!/^[a-zA-Z0-9_а-яА-Я\-]+$/.test(name)) {
+                registerError.textContent = '❌ Только буквы, цифры, _ и -';
+                return;
+            }
+
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                playerName = name;
+                savePlayerName(name);
+                hideRegister();
+                renderLeaderboard();
+                loadAnnouncement();
+                updateBanUI();
+                updateMaintenanceUI();
+                return;
+            }
+
+            const taken = await isNickTaken(name);
+            if (taken) {
+                registerError.textContent = '❌ Этот ник уже занят!';
+                return;
+            }
+
+            playerName = name;
+            savePlayerName(name);
+            hideRegister();
+            renderLeaderboard();
+            loadAnnouncement();
+            updateBanUI();
+            updateMaintenanceUI();
+        }
+
+        registerBtn.addEventListener('click', handleRegister);
+        registerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleRegister();
+        });
+
+        // ============================================================
+        //  ПРОВЕРКА УДАЛЕНИЯ АККАУНТА
+        // ============================================================
+        function checkAccountDeleted() {
+            try {
+                const deleted = localStorage.getItem('horizon_account_deleted');
+                if (deleted && deleted.toLowerCase() === playerName.toLowerCase()) {
+                    localStorage.removeItem('horizon_account_deleted');
+                    localStorage.removeItem('horizonPlayerName');
+                    localStorage.removeItem('horizonGameState');
+                    localStorage.removeItem('horizonDailyBonus');
+                    localStorage.removeItem('horizonVip');
+                    showNotification('⚠️ Ваш аккаунт был удалён администратором. Войдите заново.', 'error');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (e) {}
+        }
+
+        // ============================================================
+        //  VIP СИСТЕМА
+        // ============================================================
+        function loadVipStatus() {
+            try {
+                const vip = localStorage.getItem('horizonVip');
+                if (vip && VIP_TIERS.some(t => t.id === vip)) {
+                    state.vip = vip;
+                } else {
+                    state.vip = null;
+                }
+            } catch (e) {
+                state.vip = null;
+            }
+            renderVip();
+        }
+
+        function saveVipStatus(tierId) {
+            try {
+                if (tierId) {
+                    localStorage.setItem('horizonVip', tierId);
+                } else {
+                    localStorage.removeItem('horizonVip');
+                }
+                state.vip = tierId;
+                renderVip();
+            } catch (e) {}
+        }
+
+        function getVipBonus() {
+            if (!state.vip) return { click: 0, passive: 0 };
+            const tier = VIP_TIERS.find(t => t.id === state.vip);
+            return tier ? { click: tier.bonusClick, passive: tier.bonusPassive } : { click: 0, passive: 0 };
+        }
+
+        function renderVip() {
+            vipContainer.innerHTML = '';
+            VIP_TIERS.forEach(tier => {
+                const isOwn = state.vip === tier.id;
+                const isHigher = VIP_TIERS.findIndex(t => t.id === state.vip) > VIP_TIERS.findIndex(t => t.id === tier
+                .id);
+                const canBuy = state.score >= tier.price && !isOwn && !isHigher;
+
+                const card = document.createElement('div');
+                card.className = `vip-card ${tier.id}`;
+                card.innerHTML = `
+                    <div class="vip-icon">${tier.name.split(' ')[0]}</div>
+                    <div class="vip-name">${tier.name}</div>
+                    <div class="vip-price">💰 ${tier.price} монет</div>
+                    <div class="vip-bonuses">
+                        ⚡ +${Math.round(tier.bonusClick * 100)}% к силе клика<br>
+                        📈 +${Math.round(tier.bonusPassive * 100)}% к пассивному доходу
+                    </div>
+                    ${isOwn ? '<div class="vip-own">✅ Активен</div>' :
+                    `<button class="vip-btn" ${!canBuy ? 'disabled' : ''}>${isHigher ? '🔒 Уже выше' : '👑 Купить'}</button>`}
+                `;
+                vipContainer.appendChild(card);
+
+                const btn = card.querySelector('.vip-btn');
+                if (btn && !isOwn) {
+                    btn.addEventListener('click', () => buyVip(tier.id));
+                }
+            });
+        }
+
+        async function buyVip(tierId) {
+            const tier = VIP_TIERS.find(t => t.id === tierId);
+            if (!tier) return;
+            if (state.score < tier.price) {
+                showNotification(`❌ Недостаточно монет! Нужно ${tier.price}`, 'error');
+                return;
+            }
+            if (state.vip === tierId) {
+                showNotification('ℹ️ У вас уже есть этот статус', 'info');
+                return;
+            }
+
+            // Проверяем, не куплен ли более высокий статус
+            const currentIndex = VIP_TIERS.findIndex(t => t.id === state.vip);
+            const newIndex = VIP_TIERS.findIndex(t => t.id === tierId);
+            if (currentIndex > newIndex) {
+                showNotification('❌ У вас уже более высокий статус!', 'error');
+                return;
+            }
+
+            state.score -= tier.price;
+            saveVipStatus(tierId);
+            render();
+            refreshAllScores();
+            showNotification(`👑 Поздравляем! Вы купили статус "${tier.name}"!`, 'success');
+            addConsoleLog(`Куплен VIP статус ${tier.name}`, 'success');
+            renderVip();
+        }
+
+        // ============================================================
+        //  ЕЖЕДНЕВНЫЙ БОНУС
+        // ============================================================
+        function checkDailyBonus() {
+            try {
+                const lastBonus = localStorage.getItem('horizonDailyBonus');
+                const today = new Date().toDateString();
+                if (lastBonus === today) {
+                    dailyBonusBtn.disabled = true;
+                    dailyBonusStatus.textContent = '✅ Бонус уже получен сегодня!';
+                } else {
+                    dailyBonusBtn.disabled = false;
+                    dailyBonusStatus.textContent = '🎁 Нажмите, чтобы получить +50 монет!';
+                }
+            } catch (e) {
+                dailyBonusBtn.disabled = false;
+                dailyBonusStatus.textContent = '🎁 Нажмите, чтобы получить +50 монет!';
+            }
+        }
+
+        dailyBonusBtn.addEventListener('click', async () => {
+            if (dailyBonusBtn.disabled) return;
+            try {
+                const today = new Date().toDateString();
+                state.score += DAILY_BONUS_AMOUNT;
+                render();
+                refreshAllScores();
+                localStorage.setItem('horizonDailyBonus', today);
+                dailyBonusBtn.disabled = true;
+                dailyBonusStatus.textContent = '✅ Бонус получен! +50 монет';
+                showNotification(`🎁 +${DAILY_BONUS_AMOUNT} монет за ежедневный бонус!`, 'success');
+                addConsoleLog(`Ежедневный бонус +${DAILY_BONUS_AMOUNT} монет`, 'success');
+                await addOrUpdateScore(playerName, state.score);
+                lastAutoSaveScore = state.score;
+            } catch (e) {
+                showNotification('❌ Ошибка получения бонуса', 'error');
+                addConsoleLog(`Ошибка бонуса: ${e.message}`, 'error');
+            }
+        });
+
+        // ============================================================
+        //  ГЛОБАЛЬНЫЙ БАН
+        // ============================================================
+        async function fetchBannedList(force = false) {
+            const now = Date.now();
+            if (!force && cache.banned && (now - cache.bannedTimestamp < CACHE_TTL)) {
+                return cache.banned;
+            }
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned?select=name`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки банов');
+                const data = await res.json();
+                cache.banned = data.map(item => item.name);
+                cache.bannedTimestamp = now;
+                return cache.banned;
+            } catch (e) {
+                addConsoleLog(`Ошибка загрузки банов: ${e.message}`, 'error');
+                return cache.banned || [];
+            }
+        }
+
+        async function addBan(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                });
+                if (res.ok) {
+                    cache.banned = null;
+                    addConsoleLog(`Игрок ${name} забанен`, 'success');
+                    showNotification(`⛔ Игрок ${name} забанен`, 'error');
+                }
+                return res.ok;
+            } catch (e) {
+                addConsoleLog(`Ошибка бана: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function removeBan(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/banned?name=eq.${encodeURIComponent(name)}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (res.ok) {
+                    cache.banned = null;
+                    addConsoleLog(`Игрок ${name} разбанен`, 'success');
+                    showNotification(`✅ Игрок ${name} разбанен`, 'success');
+                }
+                return res.ok;
+            } catch (e) {
+                addConsoleLog(`Ошибка разбана: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function isBanned(name) {
+            if (!name) return false;
+            const list = await fetchBannedList();
+            return list.some(b => b.toLowerCase() === name.toLowerCase());
+        }
+
+        async function updateBanUI() {
+            if (!playerName) return;
+            const banned = await isBanned(playerName);
+            if (banned) {
+                clickBtn.classList.add('banned');
+                clickBtn.textContent = '⛔ ЗАБАНЕН';
+                clickBtn.disabled = true;
+            } else {
+                clickBtn.classList.remove('banned');
+                clickBtn.textContent = 'КЛИК';
+                clickBtn.disabled = false;
+            }
+        }
+
+        // ============================================================
+        //  ОБЪЯВЛЕНИЯ
+        // ============================================================
+        function getLastShownAnnouncementId() {
+            try {
+                return localStorage.getItem('horizonLastAnnounceId') || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setLastShownAnnouncementId(id) {
+            try {
+                localStorage.setItem('horizonLastAnnounceId', id);
+            } catch (e) {}
+        }
+
+        async function saveAnnouncementToSupabase(text) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/announcements`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
+                });
+                if (res.ok) {
+                    addConsoleLog(`Объявление отправлено: "${text}"`, 'success');
+                    showNotification(`📢 Объявление отправлено всем игрокам!`, 'info');
+                }
+                return res.ok;
+            } catch (e) {
+                addConsoleLog(`Ошибка отправки объявления: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function fetchAnnouncement() {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/announcements?select=id,text&order=created_at.desc&limit=1`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return { id: data[0].id, text: data[0].text };
+                }
+                return null;
+            } catch (e) {
+                addConsoleLog(`Ошибка загрузки объявления: ${e.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function loadAnnouncement() {
+            const data = await fetchAnnouncement();
+            if (!data || !data.text || !data.text.trim()) {
+                announcementBanner.style.display = 'none';
+                return;
+            }
+
+            const lastShownId = getLastShownAnnouncementId();
+
+            if (lastShownId !== String(data.id)) {
+                announcementText.textContent = data.text.trim();
+                announcementBanner.style.display = 'block';
+                setLastShownAnnouncementId(String(data.id));
+                addConsoleLog(`Показано объявление: "${data.text}"`, 'info');
+            } else {
+                announcementBanner.style.display = 'none';
+            }
+        }
+
+        closeAnnounce.addEventListener('click', () => {
+            announcementBanner.style.display = 'none';
+            fetchAnnouncement().then(data => {
+                if (data) {
+                    setLastShownAnnouncementId(String(data.id));
+                }
+            });
+        });
+
+        // ============================================================
+        //  ТЕХНИЧЕСКИЙ ПЕРЕРЫВ
+        // ============================================================
+        async function getMaintenanceStatus(force = false) {
+            const now = Date.now();
+            if (!force && cache.maintenance && (now - cache.maintenanceTimestamp < CACHE_TTL)) {
+                return cache.maintenance;
+            }
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?select=*&limit=1`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                const result = data && data.length > 0 ?
+                    { enabled: data[0].enabled, message: data[0].message } :
+                    { enabled: false, message: '🛠️ Технические работы. Скоро вернёмся!' };
+                cache.maintenance = result;
+                cache.maintenanceTimestamp = now;
+                return result;
+            } catch (e) {
+                addConsoleLog(`Ошибка загрузки статуса перерыва: ${e.message}`, 'error');
+                return cache.maintenance || { enabled: false, message: '🛠️ Технические работы. Скоро вернёмся!' };
+            }
+        }
+
+        async function setMaintenanceStatus(enabled, message) {
+            try {
+                const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?select=id&limit=1`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const existing = await checkRes.json();
+
+                let ok;
+                if (existing && existing.length > 0) {
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance?id=eq.${existing[0].id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ enabled, message, updated_at: new Date().toISOString() })
+                    });
+                    ok = updateRes.ok;
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/maintenance`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ enabled, message })
+                    });
+                    ok = insertRes.ok;
+                }
+                if (ok) {
+                    cache.maintenance = null;
+                    addConsoleLog(`Техперерыв ${enabled ? 'ВКЛЮЧЁН' : 'ВЫКЛЮЧЕН'}`, 'success');
+                }
+                return ok;
+            } catch (e) {
+                addConsoleLog(`Ошибка обновления перерыва: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function updateMaintenanceUI() {
+            const status = await getMaintenanceStatus();
+
+            if (status.enabled) {
+                maintenanceText.textContent = status.message;
+                maintenanceBanner.style.display = 'block';
+                clickBtn.classList.add('maintenance-mode');
+                clickBtn.textContent = '⛔ ПЕРЕРЫВ';
+                clickBtn.disabled = true;
+                showNotification(`🛠️ ${status.message}`, 'info', 5000);
+            } else {
+                maintenanceBanner.style.display = 'none';
+                clickBtn.classList.remove('maintenance-mode');
+                if (!clickBtn.classList.contains('banned')) {
+                    clickBtn.textContent = 'КЛИК';
+                    clickBtn.disabled = false;
+                }
+                updateBanUI();
+            }
+
+            const statusEl = document.getElementById('adminMaintenanceStatus');
+            if (statusEl) {
+                statusEl.textContent = status.enabled ? '⏸ Перерыв ВКЛЮЧЁН' : '▶️ Перерыв ВЫКЛЮЧЕН';
+                statusEl.style.color = status.enabled ? '#ff6b6b' : '#6bcb77';
+            }
+        }
+
+        closeMaintenance.addEventListener('click', () => {
+            maintenanceBanner.style.display = 'none';
+        });
+
+        document.getElementById('adminMaintenanceEnable').addEventListener('click', async () => {
+            const message = document.getElementById('adminMaintenanceMessage').value.trim() || '🛠️ Технические работы. Скоро вернёмся!';
+            const success = await setMaintenanceStatus(true, message);
+            if (success) {
+                showNotification('✅ Технический перерыв ВКЛЮЧЁН', 'success');
+                updateMaintenanceUI();
+            } else {
+                showNotification('❌ Ошибка включения перерыва', 'error');
+            }
+        });
+
+        document.getElementById('adminMaintenanceDisable').addEventListener('click', async () => {
+            const success = await setMaintenanceStatus(false, '');
+            if (success) {
+                showNotification('✅ Технический перерыв ВЫКЛЮЧЕН', 'success');
+                updateMaintenanceUI();
+            } else {
+                showNotification('❌ Ошибка выключения перерыва', 'error');
+            }
+        });
+
+        // ============================================================
+        //  ПЕРЕИМЕНОВАНИЕ НИКА
+        // ============================================================
+        async function renamePlayer(newName) {
+            if (!playerName) return false;
+            if (newName.length < 2 || newName.length > 20) {
+                showNotification('❌ Ник должен быть от 2 до 20 символов', 'error');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9_а-яА-Я\-]+$/.test(newName)) {
+                showNotification('❌ Только буквы, цифры, _ и -', 'error');
+                return false;
+            }
+            if (newName.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                showNotification('❌ Этот ник зарезервирован для владельца!', 'error');
+                return false;
+            }
+            if (newName.toLowerCase() === playerName.toLowerCase()) {
+                showNotification('ℹ️ Это ваш текущий ник', 'info');
+                return false;
+            }
+            if (await isBanned(playerName)) {
+                showNotification('⛔ Забаненные игроки не могут менять ник!', 'error');
+                return false;
+            }
+
+            const taken = await isNickTaken(newName);
+            if (taken) {
+                showNotification('❌ Этот ник уже занят!', 'error');
+                return false;
+            }
+
+            if (state.score < RENAME_COST) {
+                showNotification(`❌ Недостаточно монет! Нужно ${RENAME_COST}`, 'error');
+                return false;
+            }
+
+            state.score -= RENAME_COST;
+            render();
+
+            const oldName = playerName;
+            playerName = newName;
+            savePlayerName(newName);
+
+            if (newName === OWNER_NAME) {
+                playerNameDisplay.innerHTML = `<span class="owner-glow">${newName} 👑</span>`;
+            } else {
+                playerNameDisplay.innerHTML = `<span class="glow-text">${newName}</span>`;
+            }
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(oldName)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const existing = await checkRes.json();
+                if (existing && existing.length > 0) {
+                    const id = existing[0].id;
+                    await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: newName })
+                    });
+                    addConsoleLog(`Ник изменён с ${oldName} на ${newName}`, 'success');
+                }
+            } catch (e) {
+                addConsoleLog(`Ошибка переименования: ${e.message}`, 'error');
+            }
+
+            showNotification(`✅ Ник успешно изменён на "${newName}" за ${RENAME_COST} монет!`, 'success');
+            renderLeaderboard();
+            updateBanUI();
+            return true;
+        }
+
+        // ============================================================
+        //  ВКЛАДКИ
+        // ============================================================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                const target = document.getElementById('tab-' + tab);
+                if (target) target.classList.add('active');
+                if (tab === 'leaderboard') renderLeaderboard();
+                if (tab === 'shop') {
+                    renderShop();
+                    renderVip();
+                }
+                if (tab === 'admin') {
+                    updateAdminStats();
+                    updateMaintenanceUI();
+                    addConsoleLog('Открыта админ-панель', 'info');
+                }
+                if (tab === 'trade') {
+                    tradeScoreEl.textContent = Math.floor(state.score);
+                    tradePerSecEl.textContent = perSecEl.textContent;
+                }
+            });
+        });
+
+        // ===== Переключение вкладок внутри магазина =====
+        document.querySelectorAll('[data-shop-tab]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-shop-tab]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.shopTab;
+                document.getElementById('shopUpgradesContainer').style.display = tab === 'upgrades' ? 'block' :
+                    'none';
+                document.getElementById('shopVipContainer').style.display = tab === 'vip' ? 'block' : 'none';
+                if (tab === 'vip') renderVip();
+            });
+        });
+
+        // ============================================================
+        //  ВСПОМОГАТЕЛЬНЫЕ
+        // ============================================================
+        function getCost(item, level) {
+            return Math.floor(item.baseCost * Math.pow(item.costMultiplier, level));
+        }
+
+        function computeEffects() {
+            let clickBonus = 1,
+                passiveIncome = 0,
+                passiveMult = 1,
+                clickMult = 1;
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const eff = item.effect(lv);
+                if (eff.clickBonus !== undefined) clickBonus += eff.clickBonus;
+                if (eff.passiveIncome !== undefined) passiveIncome += eff.passiveIncome;
+                if (eff.passiveMult !== undefined) passiveMult = eff.passiveMult;
+                if (eff.clickMult !== undefined) clickMult = eff.clickMult;
+            });
+            const levelBonus = 1 + (state.level - 1) * 0.05;
+            const vipBonus = getVipBonus();
+            const finalClick = clickBonus * clickMult * levelBonus * (1 + vipBonus.click);
+            const finalPassive = passiveIncome * passiveMult * (1 + vipBonus.passive);
+            return {
+                finalClickPower: finalClick,
+                finalPassive: finalPassive
+            };
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  РЕНДЕР
+        // ============================================================
+        function render() {
+            const eff = computeEffects();
+            const score = Math.floor(state.score);
+            scoreEl.textContent = score;
+            shopScoreEl.textContent = score;
+            tradeScoreEl.textContent = score;
+            perSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            shopPerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            tradePerSecEl.textContent = `+${eff.finalPassive.toFixed(1)}/сек`;
+            totalClicksEl.textContent = state.totalClicks;
+            clickPowerEl.textContent = eff.finalClickPower.toFixed(1);
+            expDisplay.textContent = state.exp;
+            levelBadge.textContent = `⭐ Ур. ${state.level}`;
+            renderShop();
+            renderVip();
+            saveState();
+            scoreEl.classList.remove('pop');
+            void scoreEl.offsetWidth;
+            scoreEl.classList.add('pop');
+        }
+
+        // ============================================================
+        //  ОБНОВЛЕНИЕ БАЛАНСА
+        // ============================================================
+        async function refreshBalance() {
+            if (!playerName) {
+                showNotification('❌ Сначала войдите в игру!', 'error');
+                return;
+            }
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(playerName)}&select=score`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    state.score = data[0].score;
+                    render();
+                    refreshAllScores();
+                    lastAutoSaveScore = state.score;
+                    addConsoleLog(`✅ Баланс обновлён вручную: ${state.score}`, 'success');
+                    showNotification(`✅ Баланс обновлён: ${state.score}`, 'success');
+                } else {
+                    showNotification('❌ Игрок не найден в базе', 'error');
+                }
+            } catch (e) {
+                showNotification('❌ Ошибка обновления баланса', 'error');
+                console.warn(e);
+            }
+        }
+
+        function refreshAllScores() {
+            const s = Math.floor(state.score);
+            scoreEl.textContent = s;
+            shopScoreEl.textContent = s;
+            tradeScoreEl.textContent = s;
+        }
+
+        refreshBalanceBtn.addEventListener('click', refreshBalance);
+
+        // ============================================================
+        //  МАГАЗИН
+        // ============================================================
+        function renderShop() {
+            shopContainer.innerHTML = '';
+
+            SHOP_ITEMS.forEach(item => {
+                const lv = state.levels[item.id] || 0;
+                const cost = getCost(item, lv);
+                const maxed = lv >= item.maxLevel;
+                const canAfford = state.score >= cost && !maxed;
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                card.innerHTML = `
+                    <div class="title"><span>${item.label}</span><span class="level">ур. ${lv}</span></div>
+                    <div class="desc">${item.desc}</div>
+                    <div class="price-row">
+                        <span class="price">🪙 ${cost}</span>
+                        <button class="buy-btn" ${!canAfford ? 'disabled' : ''}>${maxed ? 'MAX' : 'Купить'}</button>
+                    </div>
+                `;
+                shopContainer.appendChild(card);
+                const btn = card.querySelector('.buy-btn');
+                if (!maxed) {
+                    btn.addEventListener('click', () => purchaseItem(item.id));
+                }
+            });
+
+            const renameCard = document.createElement('div');
+            renameCard.className = 'shop-card rename-card';
+            renameCard.innerHTML = `
+                <div class="title"><span>✏️ Сменить ник</span></div>
+                <div class="desc">Новый ник (2-20 символов)</div>
+                <div class="price-row">
+                    <span class="price">🪙 ${RENAME_COST}</span>
+                    <button class="buy-btn" id="renameBtn">Сменить</button>
+                </div>
+            `;
+            shopContainer.appendChild(renameCard);
+
+            renameCard.querySelector('#renameBtn').addEventListener('click', () => {
+                const newName = prompt('Введите новый ник (2-20 символов):');
+                if (newName !== null) {
+                    renamePlayer(newName.trim());
+                }
+            });
+        }
+
+        async function purchaseItem(id) {
+            if (await isBanned(playerName)) {
+                showNotification('⛔ Забаненные игроки не могут покупать улучшения!', 'error');
+                return;
+            }
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+            const lv = state.levels[id] || 0;
+            if (lv >= item.maxLevel) return;
+            const cost = getCost(item, lv);
+            if (state.score < cost) return;
+            state.score -= cost;
+            state.levels[id] = lv + 1;
+            addConsoleLog(`Куплено улучшение ${item.label} до ур. ${state.levels[id]}`, 'success');
+            showNotification(`✅ ${item.label} улучшен до ур. ${state.levels[id]}`, 'success');
+            render();
+        }
+
+        document.getElementById('buyAllBtn').addEventListener('click', async () => {
+            if (await isBanned(playerName)) {
+                showNotification('⛔ Забаненные игроки не могут покупать!', 'error');
+                return;
+            }
+            let bought = 0;
+            for (const item of SHOP_ITEMS) {
+                const lv = state.levels[item.id] || 0;
+                if (lv >= item.maxLevel) continue;
+                const cost = getCost(item, lv);
+                while (state.score >= cost && lv + bought < item.maxLevel) {
+                    state.score -= cost;
+                    state.levels[item.id] = (state.levels[item.id] || 0) + 1;
+                    bought++;
+                }
+            }
+            if (bought > 0) {
+                addConsoleLog(`Куплено ${bought} улучшений за раз`, 'success');
+                showNotification(`✅ Куплено ${bought} улучшений!`, 'success');
+                render();
+            } else {
+                showNotification('❌ Недостаточно монет или всё уже куплено', 'error');
+            }
+        });
+
+        // ============================================================
+        //  SUPABASE — ЛИДЕРБОРД
+        // ============================================================
+        async function fetchLeaderboard(force = false) {
+            const now = Date.now();
+            if (!force && cache.leaderboard && (now - cache.leaderboardTimestamp < CACHE_TTL)) {
+                return cache.leaderboard;
+            }
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                const data = await res.json();
+                cache.leaderboard = data;
+                cache.leaderboardTimestamp = now;
+                addConsoleLog(`Лидерборд загружен (${data.length} записей)`, 'info');
+                return data;
+            } catch (e) {
+                addConsoleLog(`Ошибка загрузки лидерборда: ${e.message}`, 'error');
+                return cache.leaderboard || null;
+            }
+        }
+
+        async function addOrUpdateScore(name, score) {
+            if (await isBanned(name)) {
+                addConsoleLog(`Игрок ${name} забанен, сохранение отклонено`, 'error');
+                return false;
+            }
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка проверки');
+                const existing = await checkRes.json();
+
+                if (existing && existing.length > 0) {
+                    const currentScore = existing[0].score;
+                    if (score <= currentScore) {
+                        addConsoleLog(`Счёт ${name} (${score}) не обновлён (текущий ${currentScore})`, 'info');
+                        return false;
+                    }
+                    const id = existing[0].id;
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ score })
+                    });
+                    if (!updateRes.ok) throw new Error('Ошибка обновления');
+                    cache.leaderboard = null;
+                    addConsoleLog(`Счёт ${name} обновлён до ${score}`, 'success');
+                    return true;
+                } else {
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, score })
+                    });
+                    if (!insertRes.ok) throw new Error('Ошибка сохранения');
+                    cache.leaderboard = null;
+                    addConsoleLog(`Игрок ${name} создан со счётом ${score}`, 'success');
+                    return true;
+                }
+            } catch (e) {
+                addConsoleLog(`Ошибка сохранения счёта: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function deletePlayerFromLeaderboard(name) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка удаления');
+                cache.leaderboard = null;
+                addConsoleLog(`Игрок ${name} удалён из лидерборда`, 'success');
+                return true;
+            } catch (e) {
+                addConsoleLog(`Ошибка удаления: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function clearLeaderboard() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?score=gte.0`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Ошибка очистки');
+                cache.leaderboard = null;
+                addConsoleLog('Лидерборд полностью очищен', 'success');
+                return true;
+            } catch (e) {
+                addConsoleLog(`Ошибка очистки: ${e.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function renderLeaderboard() {
+            const data = await fetchLeaderboard();
+            if (!data || data.length === 0) {
+                leaderboardContainer.innerHTML = `<div class="lb-empty">🏆 Пока нет записей. Стань первым!</div>`;
+                return;
+            }
+            const bannedList = await fetchBannedList();
+            let html = '';
+            data.forEach((entry, index) => {
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                const isMe = entry.name.toLowerCase() === playerName.toLowerCase();
+                const isBannedUser = bannedList.some(b => b.toLowerCase() === entry.name.toLowerCase());
+
+                let nameDisplay;
+                if (isMe) {
+                    if (entry.name === OWNER_NAME) {
+                        nameDisplay = `<span class="owner-glow">${escapeHtml(entry.name)} 👑</span>`;
+                    } else {
+                        nameDisplay = `<span class="glow-text">${escapeHtml(entry.name)} ⭐</span>`;
+                    }
+                } else {
+                    nameDisplay = escapeHtml(entry.name);
+                }
+
+                html += `
+                    <div class="lb-entry ${isMe ? 'me' : ''}" style="${isBannedUser ? 'opacity:0.5; border-color:#6a313a;' : ''}">
+                        <span class="rank">${medal}</span>
+                        <span class="name">${nameDisplay} ${isBannedUser ? '⛔' : ''}</span>
+                        <span class="lb-score">🪙 ${Math.floor(entry.score)}</span>
+                    </div>
+                `;
+            });
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // ============================================================
+        //  ТРЕЙД
+        // ============================================================
+        tradeSendBtn.addEventListener('click', async () => {
+            const recipient = tradeRecipient.value.trim();
+            const amount = parseInt(tradeAmount.value);
+
+            if (!recipient) {
+                tradeMessage.textContent = '❌ Введите ник получателя';
+                tradeMessage.className = 'trade-message error';
+                return;
+            }
+            if (!amount || amount <= 0) {
+                tradeMessage.textContent = '❌ Введите сумму (минимум 1)';
+                tradeMessage.className = 'trade-message error';
+                return;
+            }
+            if (recipient.toLowerCase() === playerName.toLowerCase()) {
+                tradeMessage.textContent = '❌ Нельзя перевести самому себе';
+                tradeMessage.className = 'trade-message error';
+                return;
+            }
+            if (state.score < amount) {
+                tradeMessage.textContent = `❌ Недостаточно монет! Нужно ${amount}, у вас ${Math.floor(state.score)}`;
+                tradeMessage.className = 'trade-message error';
+                return;
+            }
+            if (await isBanned(playerName)) {
+                tradeMessage.textContent = '⛔ Вы забанены!';
+                tradeMessage.className = 'trade-message error';
+                return;
+            }
+
+            tradeMessage.textContent = '⏳ Проверка...';
+            tradeMessage.className = 'trade-message';
+            tradeSendBtn.disabled = true;
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(recipient)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка проверки');
+                const existing = await checkRes.json();
+
+                if (!existing || existing.length === 0) {
+                    tradeMessage.textContent = `❌ Игрок "${recipient}" не найден`;
+                    tradeMessage.className = 'trade-message error';
+                    tradeSendBtn.disabled = false;
+                    return;
+                }
+
+                const senderRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(playerName)}&select=id`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                const senderData = await senderRes.json();
+                const senderId = senderData[0]?.id;
+
+                if (!senderId) {
+                    tradeMessage.textContent = '❌ Ошибка: вы не найдены в базе';
+                    tradeMessage.className = 'trade-message error';
+                    tradeSendBtn.disabled = false;
+                    return;
+                }
+
+                const recipientId = existing[0].id;
+                const recipientScore = existing[0].score;
+
+                const senderNewScore = state.score - amount;
+                await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${senderId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ score: senderNewScore })
+                });
+
+                const recipientNewScore = recipientScore + amount;
+                await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${recipientId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ score: recipientNewScore })
+                });
+
+                state.score = senderNewScore;
+                render();
+                refreshAllScores();
+                lastAutoSaveScore = senderNewScore;
+
+                tradeMessage.textContent = `✅ ${amount} монет отправлено игроку ${recipient}!`;
+                tradeMessage.className = 'trade-message success';
+                tradeRecipient.value = '';
+                tradeAmount.value = '10';
+                showNotification(`💸 ${amount} монет отправлено ${recipient}`, 'success');
+
+                cache.leaderboard = null;
+                renderLeaderboard();
+
+                addConsoleLog(`Перевод: ${amount} монет от ${playerName} к ${recipient}`, 'success');
+
+            } catch (e) {
+                tradeMessage.textContent = '❌ Ошибка перевода. Попробуйте позже.';
+                tradeMessage.className = 'trade-message error';
+                console.warn(e);
+            }
+
+            tradeSendBtn.disabled = false;
+        });
+
+        // ============================================================
+        //  ИГРОВАЯ ЛОГИКА
+        // ============================================================
+        async function handleClick(e) {
+            const maintenanceStatus = await getMaintenanceStatus();
+            if (maintenanceStatus.enabled) {
+                showNotification(`🛠️ ${maintenanceStatus.message}`, 'info');
+                return;
+            }
+
+            if (await isBanned(playerName)) {
+                showNotification('⛔ Вы забанены и не можете кликать!', 'error');
+                return;
+            }
+
+            playClickSound(0.15);
+
+            const rect = clickBtn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            spawnParticles(cx, cy, 5);
+
+            const eff = computeEffects();
+            state.score += eff.finalClickPower;
+            state.totalClicks += 1;
+            state.exp += 1;
+
+            const expNeeded = state.level * 20;
+            if (state.exp >= expNeeded) {
+                state.exp -= expNeeded;
+                state.level += 1;
+                addConsoleLog(`⬆️ Повышение уровня! Теперь ур. ${state.level}`, 'success');
+                showNotification(`🎉 Повышение уровня! Теперь ур. ${state.level}`, 'success');
+            }
+
+            clickHistory.push(Date.now());
+            const now = Date.now();
+            clickHistory = clickHistory.filter(t => now - t < 1000);
+            cps = clickHistory.length;
+            cpsBadge.textContent = `⚡ ${cps} CPS`;
+
+            render();
+
+            clickBtn.style.transform = 'scale(0.90)';
+            setTimeout(() => { clickBtn.style.transform = ''; }, 70);
+        }
+
+        let passiveInterval = null;
+        let autoSaveInterval = null;
+
+        function startPassiveIncome() {
+            if (passiveInterval) clearInterval(passiveInterval);
+            passiveInterval = setInterval(async () => {
+                const maintenanceStatus = await getMaintenanceStatus();
+                if (maintenanceStatus.enabled) return;
+
+                if (await isBanned(playerName)) return;
+                const eff = computeEffects();
+                if (eff.finalPassive > 0) {
+                    state.score += eff.finalPassive;
+                    render();
+                }
+            }, 1000);
+        }
+
+        function startAutoSave() {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(async () => {
+                if (!playerName) return;
+                const maintenanceStatus = await getMaintenanceStatus();
+                if (maintenanceStatus.enabled) return;
+                if (await isBanned(playerName)) return;
+                const currentScore = Math.floor(state.score);
+                if (currentScore < 1) return;
+                if (currentScore === lastAutoSaveScore) return;
+
+                const success = await addOrUpdateScore(playerName, currentScore);
+                if (success) {
+                    lastAutoSaveScore = currentScore;
+                    addConsoleLog(`Автосохранение: ${currentScore} очков для ${playerName}`, 'info');
+                }
+            }, 10000);
+        }
+
+        // ============================================================
+        //  СОХРАНЕНИЕ / ЗАГРУЗКА
+        // ============================================================
+        function saveState() {
+            try {
+                const data = {
+                    score: state.score,
+                    totalClicks: state.totalClicks,
+                    levels: state.levels,
+                    exp: state.exp,
+                    level: state.level,
+                    vip: state.vip,
+                };
+                localStorage.setItem('horizonGameState', JSON.stringify(data));
+            } catch (e) {}
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('horizonGameState');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (typeof parsed.score === 'number' &&
+                        typeof parsed.totalClicks === 'number' &&
+                        parsed.levels &&
+                        typeof parsed.exp === 'number' &&
+                        typeof parsed.level === 'number') {
+                        SHOP_ITEMS.forEach(item => {
+                            if (typeof parsed.levels[item.id] !== 'number') parsed.levels[item.id] = 0;
+                        });
+                        state = parsed;
+                        if (parsed.vip && VIP_TIERS.some(t => t.id === parsed.vip)) {
+                            state.vip = parsed.vip;
+                        } else {
+                            state.vip = null;
+                        }
+                        addConsoleLog(`Загружен прогресс: ур.${state.level}, ${state.score} очков, ${state.totalClicks} кликов`, 'info');
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        // ============================================================
+        //  АДМИН-ФУНКЦИИ
+        // ============================================================
+        async function updateAdminStats() {
+            try {
+                const data = await fetchLeaderboard();
+                if (data && data.length > 0) {
+                    document.getElementById('adminTotalPlayers').textContent = data.length;
+                    const total = data.reduce((s, e) => s + e.score, 0);
+                    document.getElementById('adminAvgScore').textContent = Math.floor(total / data.length);
+                    document.getElementById('adminTop1').textContent = `${data[0].name} (${Math.floor(data[0].score)})`;
+                } else {
+                    document.getElementById('adminTotalPlayers').textContent = '0';
+                    document.getElementById('adminAvgScore').textContent = '0';
+                    document.getElementById('adminTop1').textContent = '—';
+                }
+            } catch (e) {
+                addConsoleLog(`Ошибка статистики: ${e.message}`, 'error');
+            }
+        }
+
+        let searchTimeout = null;
+
+        document.getElementById('adminFindPlayer').addEventListener('click', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                const name = document.getElementById('adminPlayerSearch').value.trim();
+                if (!name) {
+                    document.getElementById('adminPlayerResult').textContent = 'Введите ник';
+                    return;
+                }
+                try {
+                    const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=*`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    });
+                    if (!res.ok) throw new Error('Ошибка');
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const entry = data[0];
+                        const banned = await isBanned(entry.name);
+                        document.getElementById('adminPlayerResult').innerHTML =
+                            `✅ Найден: <strong>${escapeHtml(entry.name)}</strong> — 🪙 ${Math.floor(entry.score)} ${banned ? '⛔ Забанен' : ''}`;
+                        addConsoleLog(`Найден игрок ${entry.name} со счётом ${entry.score}`, 'success');
+                    } else {
+                        document.getElementById('adminPlayerResult').textContent = '❌ Игрок не найден';
+                        addConsoleLog(`Игрок ${name} не найден`, 'error');
+                    }
+                } catch (e) {
+                    document.getElementById('adminPlayerResult').textContent = '❌ Ошибка поиска';
+                    addConsoleLog(`Ошибка поиска: ${e.message}`, 'error');
+                }
+            }, 300);
+        });
+
+        document.getElementById('adminDeletePlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { showNotification('❌ Введите ник', 'error'); return; }
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                showNotification('⛔ Нельзя удалить владельца!', 'error');
+                return;
+            }
+            if (!confirm(`Удалить игрока ${name} из лидерборда?`)) return;
+            const success = await deletePlayerFromLeaderboard(name);
+            if (success) {
+                showNotification(`✅ Игрок ${name} удалён из лидерборда`, 'success');
+                document.getElementById('adminPlayerResult').textContent = `✅ Удалён: ${name}`;
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                showNotification('❌ Ошибка удаления', 'error');
+            }
+        });
+
+        document.getElementById('adminBanPlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { showNotification('❌ Введите ник', 'error'); return; }
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                showNotification('⛔ Нельзя забанить владельца!', 'error');
+                return;
+            }
+            if (await isBanned(name)) {
+                showNotification(`Игрок ${name} уже забанен`, 'info');
+                return;
+            }
+            const success = await addBan(name);
+            if (success) {
+                showNotification(`⛔ ${name} забанен глобально!`, 'error');
+                document.getElementById('adminPlayerResult').textContent = `⛔ ${name} забанен`;
+                renderLeaderboard();
+                updateBanUI();
+                updateAdminStats();
+            } else {
+                showNotification('❌ Ошибка бана', 'error');
+            }
+        });
+
+        document.getElementById('adminUnbanPlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { showNotification('❌ Введите ник', 'error'); return; }
+            if (!await isBanned(name)) {
+                showNotification(`Игрок ${name} не в бане`, 'info');
+                return;
+            }
+            const success = await removeBan(name);
+            if (success) {
+                showNotification(`✅ ${name} разбанен глобально!`, 'success');
+                document.getElementById('adminPlayerResult').textContent = `✅ ${name} разбанен`;
+                renderLeaderboard();
+                updateBanUI();
+                updateAdminStats();
+            } else {
+                showNotification('❌ Ошибка разбана', 'error');
+            }
+        });
+
+        // ===== ПОЛНОЕ УДАЛЕНИЕ АККАУНТА =====
+        document.getElementById('adminFullDeletePlayer').addEventListener('click', async () => {
+            const name = document.getElementById('adminPlayerSearch').value.trim();
+            if (!name) { showNotification('❌ Введите ник', 'error'); return; }
+            if (name.toLowerCase() === OWNER_NAME.toLowerCase()) {
+                showNotification('⛔ Нельзя удалить владельца!', 'error');
+                return;
+            }
+            if (!confirm(`💀 Удалить аккаунт игрока "${name}" полностью (из всех таблиц)?`)) return;
+            if (!confirm(`Вы уверены? Это НЕОБРАТИМО!`)) return;
+
+            try {
+                const tables = [
+                    { table: 'leaderboard', column: 'name' },
+                    { table: 'banned', column: 'name' },
+                    { table: 'admins', column: 'name' },
+                    { table: 'announcements', column: 'name' },
+                ];
+
+                let deleted = 0;
+                for (const item of tables) {
+                    const res = await fetch(
+                        `${SUPABASE_URL}/rest/v1/${item.table}?${item.column}=eq.${encodeURIComponent(name)}`,
+                        {
+                            method: 'DELETE',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`
+                            }
+                        }
+                    );
+                    if (res.ok) {
+                        deleted++;
+                        addConsoleLog(`Удалена запись из ${item.table} (${item.column}: ${name})`, 'success');
+                    } else {
+                        const text = await res.text();
+                        addConsoleLog(`Ошибка в ${item.table}: ${text}`, 'error');
+                    }
+                }
+
+                cache.leaderboard = null;
+                cache.banned = null;
+                renderLeaderboard();
+                updateAdminStats();
+
+                try {
+                    localStorage.setItem('horizon_account_deleted', name);
+                    const channel = new BroadcastChannel('horizon_account');
+                    channel.postMessage({ type: 'account_deleted', name: name });
+                    channel.close();
+                } catch (e) {}
+
+                showNotification(`✅ Аккаунт "${name}" полностью удалён! Удалено записей: ${deleted}`, 'success');
+                addConsoleLog(`Аккаунт ${name} полностью удалён (${deleted} записей)`, 'success');
+
+            } catch (e) {
+                addConsoleLog(`Ошибка полного удаления: ${e.message}`, 'error');
+                showNotification('❌ Ошибка удаления', 'error');
+            }
+        });
+
+        // ===== ВЫДАЧА БОНУСОВ =====
+        document.getElementById('adminGiveBonus').addEventListener('click', async () => {
+            const name = document.getElementById('adminBonusPlayer').value.trim();
+            const amount = parseInt(document.getElementById('adminBonusAmount').value);
+            if (!name) { showNotification('❌ Введите ник', 'error'); return; }
+            if (!amount || amount <= 0) { showNotification('❌ Введите сумму > 0', 'error'); return; }
+
+            addConsoleLog(`Попытка выдать ${amount} монет игроку ${name}`, 'info');
+
+            try {
+                const checkRes = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leaderboard?name=eq.${encodeURIComponent(name)}&select=id,score`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }
+                );
+                if (!checkRes.ok) throw new Error('Ошибка');
+                const existing = await checkRes.json();
+
+                let newScore = 0;
+                if (existing && existing.length > 0) {
+                    const id = existing[0].id;
+                    newScore = existing[0].score + amount;
+                    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=eq.${id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ score: newScore })
+                    });
+                    if (!updateRes.ok) throw new Error('Ошибка обновления');
+                    addConsoleLog(`Бонус ${amount} выдан ${name} (новый счёт: ${newScore})`, 'success');
+                    showNotification(`✅ Игроку ${name} начислено ${amount} очков (теперь ${newScore})`, 'success');
+                } else {
+                    newScore = amount;
+                    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, score: amount })
+                    });
+                    if (!insertRes.ok) throw new Error('Ошибка сохранения');
+                    addConsoleLog(`Создан игрок ${name} со счётом ${amount}`, 'success');
+                    showNotification(`✅ Игрок ${name} создан с ${amount} очками`, 'success');
+                }
+
+                if (name.toLowerCase().trim() === (playerName || '').toLowerCase().trim()) {
+                    state.score = newScore;
+                    render();
+                    refreshAllScores();
+                    lastAutoSaveScore = newScore;
+                    addConsoleLog(`Баланс обновлён для ${playerName}: ${state.score}`, 'success');
+                } else {
+                    addConsoleLog(`Бонус выдан другому игроку (${name}), баланс не меняется`, 'info');
+                }
+
+                cache.leaderboard = null;
+                renderLeaderboard();
+                updateAdminStats();
+
+            } catch (e) {
+                addConsoleLog(`Ошибка выдачи бонуса: ${e.message}`, 'error');
+                showNotification('❌ Ошибка выдачи бонуса', 'error');
+                console.warn(e);
+            }
+        });
+
+        document.getElementById('adminSendAnnounce').addEventListener('click', async () => {
+            const text = document.getElementById('adminAnnounceInput').value.trim();
+            if (!text) { showNotification('❌ Введите текст объявления', 'error'); return; }
+            const success = await saveAnnouncementToSupabase(text);
+            if (success) {
+                showNotification('✅ Объявление отправлено всем игрокам!', 'success');
+                document.getElementById('adminAnnounceInput').value = '';
+                loadAnnouncement();
+            } else {
+                showNotification('❌ Ошибка отправки объявления', 'error');
+            }
+        });
+
+        async function requirePassword(action) {
+            const pass = prompt('Введите пароль для опасного действия:');
+            if (pass !== 'horizon2026') {
+                showNotification('❌ Неверный пароль!', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('adminFullClear').addEventListener('click', async () => {
+            if (!await requirePassword('очистки лидерборда')) return;
+            if (!confirm('💀 Удалить ВСЕ записи из лидерборда?')) return;
+            const success = await clearLeaderboard();
+            if (success) {
+                showNotification('🗑 Лидерборд полностью очищен!', 'success');
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                showNotification('❌ Ошибка очистки', 'error');
+            }
+        });
+
+        document.getElementById('adminFullReset').addEventListener('click', async () => {
+            if (!await requirePassword('сброса всех игроков')) return;
+            if (!confirm('💣 Удалить ВСЕ данные всех игроков? (необратимо!)')) return;
+            const success = await clearLeaderboard();
+            if (success) {
+                try {
+                    localStorage.removeItem('horizonGameState');
+                    localStorage.removeItem('horizonPlayerName');
+                    localStorage.removeItem('horizonDailyBonus');
+                    localStorage.removeItem('horizonVip');
+                } catch (e) {}
+                showNotification('💣 Все данные сброшены! Страница перезагрузится.', 'info');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification('❌ Ошибка сброса', 'error');
+            }
+        });
+
+        document.getElementById('adminRefreshStats').addEventListener('click', updateAdminStats);
+
+        // ============================================================
+        //  КОНСОЛЬ В АДМИНКЕ
+        // ============================================================
+        document.getElementById('adminConsoleToggle').addEventListener('click', () => {
+            const box = document.getElementById('consoleBox');
+            box.classList.toggle('open');
+            if (box.classList.contains('open')) {
+                document.getElementById('adminConsoleToggle').textContent = '📋 Скрыть логи';
+                renderConsole();
+            } else {
+                document.getElementById('adminConsoleToggle').textContent = '📋 Показать логи';
+            }
+        });
+
+        document.getElementById('adminConsoleClear').addEventListener('click', () => {
+            consoleLogs = [];
+            renderConsole();
+            showNotification('🗑 Консоль очищена', 'info');
+        });
+
+        // ============================================================
+        //  ОБРАБОТЧИК УДАЛЕНИЯ АККАУНТА (BroadcastChannel)
+        // ============================================================
+        try {
+            const channel = new BroadcastChannel('horizon_account');
+            channel.onmessage = (event) => {
+                if (event.data.type === 'account_deleted') {
+                    const deletedName = event.data.name;
+                    if (deletedName && deletedName.toLowerCase() === playerName.toLowerCase()) {
+                        localStorage.removeItem('horizon_account_deleted');
+                        localStorage.removeItem('horizonPlayerName');
+                        localStorage.removeItem('horizonGameState');
+                        localStorage.removeItem('horizonDailyBonus');
+                        localStorage.removeItem('horizonVip');
+                        showNotification('⚠️ Ваш аккаунт был удалён администратором. Войдите заново.', 'error');
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                }
+            };
+        } catch (e) {}
+
+        // ============================================================
+        //  СОБЫТИЯ
+        // ============================================================
+        clickBtn.addEventListener('click', handleClick);
+        resetBtn.addEventListener('click', () => {
+            if (state.score === 0 && state.totalClicks === 0) return;
+            if (confirm('Сбросить весь прогресс игры (магазин и очки)?')) {
+                state.score = 0;
+                state.totalClicks = 0;
+                state.exp = 0;
+                state.level = 1;
+                SHOP_ITEMS.forEach(item => { state.levels[item.id] = 0; });
+                addConsoleLog('Прогрес сброшен', 'info');
+                showNotification('🔄 Прогресс сброшен', 'info');
+                render();
+                saveState();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Space') {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab && activeTab.id === 'tab-game') {
+                    e.preventDefault();
+                    handleClick(e);
+                }
+            }
+        });
+
+        saveScoreBtn.addEventListener('click', async () => {
+            if (!playerName) {
+                showNotification('❌ Сначала введите ник!', 'error');
+                return;
+            }
+            const maintenanceStatus = await getMaintenanceStatus();
+            if (maintenanceStatus.enabled) {
+                showNotification(`🛠️ ${maintenanceStatus.message}`, 'info');
+                return;
+            }
+            if (await isBanned(playerName)) {
+                showNotification('⛔ Вы забанены и не можете сохранять рекорды!', 'error');
+                return;
+            }
+            const score = Math.floor(state.score);
+            if (score < 1) {
+                showNotification('❌ Наберите хотя бы 1 очко!', 'error');
+                return;
+            }
+            const success = await addOrUpdateScore(playerName, score);
+            if (success) {
+                lastAutoSaveScore = score;
+                showNotification(`✅ Рекорд (${score}) сохранён/обновлён в глобальном лидерборде!`, 'success');
+                renderLeaderboard();
+                updateAdminStats();
+            } else {
+                if (!await isBanned(playerName)) {
+                    showNotification('❌ Не удалось сохранить. Проверьте интернет или ключи Supabase.', 'error');
+                }
+            }
+        });
+
+        // ============================================================
+        //  ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        const hasName = loadPlayerName();
+        loadState();
+        render();
+        addConsoleLog('Игра загружена', 'info');
+
+        if (!hasName) {
+            showRegister();
+        } else {
+            hideRegister();
+            renderLeaderboard();
+            loadAnnouncement();
+            updateBanUI();
+            updateMaintenanceUI();
+        }
+
+        startPassiveIncome();
+        startAutoSave();
+
+        window.addEventListener('beforeunload', () => { saveState(); });
+        setInterval(() => { saveState(); }, 15000);
+
+        console.log('🌌 HORIZON CLICKER v12.1 загружен!');
+        console.log('👑 Владелец: tester');
+        console.log('🔐 Админ-панель: 5 кликов по логотипу');
+        console.log('🔑 Пароль опасных действий: horizon2026');
+        console.log('🎁 Ежедневный бонус, звуки, частицы, CPS, уровни');
+        console.log('💸 Трейд (перевод монет)');
+        console.log('👑 VIP статусы: Базовый, Серебряный, Золотой, Алмазный');
+        console.log('📡 Удаление аккаунта сбрасывает localStorage');
+        console.log('🔔 Красивые системные уведомления');
+    </script>
+</body>
+</html>
